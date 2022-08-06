@@ -164,7 +164,8 @@
           <p class="secondary_heading">
             <strong>Created By:</strong>
             <span>
-              <%= order.createdBy === order.buyers ? 'You' : 'Admin' %></span
+              <%= order.createdBy.toString() === order.buyers.toString() ? 'You'
+              : 'Admin' %></span
             >
           </p>
           <p class="secondary_heading">

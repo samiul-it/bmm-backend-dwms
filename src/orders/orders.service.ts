@@ -18,7 +18,7 @@ export class OrdersService {
     private mailsService: MailerService,
   ) {}
 
-    async generateOrderId() {
+  async generateOrderId() {
     // ex- 2101234
     // '21'+'01234'
     // orderId= current fiscal year + the order number starting from zero
@@ -112,8 +112,11 @@ export class OrdersService {
       _order.buyers.map(async (buyer) => {
         _order.total_cost = MainTotal;
         _order.buyers = buyer;
-        
-        const newOrder = new this.ordersModel({..._order, orderId: await this.generateOrderId()});
+
+        const newOrder = new this.ordersModel({
+          ..._order,
+          orderId: await this.generateOrderId(),
+        });
         return newOrder.save();
       }),
     )
@@ -190,6 +193,11 @@ export class OrdersService {
     const startDate = new Date(query.startDate);
     const endDate = new Date(query.endDate);
 
+    if (query.startDate === query.endDate) {
+      // startDate.setDate(startDate.getDate() - 1);
+      endDate.setDate(endDate.getDate() + 1);
+    }
+
     return await this.ordersModel.aggregate([
       {
         $match: {
@@ -201,7 +209,7 @@ export class OrdersService {
         $group: {
           _id: { $dateToString: { format: '%Y/%m/%d', date: '$createdAt' } },
           totalSale: { $sum: '$total_cost' },
-
+          date: { $first: '$createdAt' },
           totalOrders: { $sum: 1 },
         },
       },
