@@ -20,7 +20,7 @@ export class OrdersController {
 
   @Get('/')
   async getAllOrders(@CurrentUser() user: any) {
-    console.log('order user Role ===>', user.role);
+    // console.log('order user Role ===>', user.role);
 
     if (user.role === 'admin') {
       return await this.ordersService.getAllOrders(user);
