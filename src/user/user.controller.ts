@@ -17,12 +17,14 @@ import { identity } from 'rxjs';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminUser } from 'src/auth/admin-user.decorator';
 import { UpdateUserPassDto } from './dto/update-user-pass.dto';
+import { CurrentUser } from 'src/auth/current-user.decorator';
 
 class CustomerPhoneDto {
   @IsPhoneNumber('IN')
   phone: string;
 }
 
+@UseGuards(AuthGuard())
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
@@ -53,10 +55,11 @@ export class UserController {
   async updatePassword(
     @Param('id') id: string,
     @Body() dto: UpdateUserPassDto,
+    @AdminUser() admin: any,
   ) {
     console.log(dto);
 
-    return await this.userService.resetUserPassword(id, dto);
+    return await this.userService.resetUserPassword(id, dto, admin);
   }
 
   @Get('/:id')
