@@ -16,6 +16,7 @@ import { IsPhoneNumber } from 'class-validator';
 import { identity } from 'rxjs';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminUser } from 'src/auth/admin-user.decorator';
+import { UpdateUserPassDto } from './dto/update-user-pass.dto';
 
 class CustomerPhoneDto {
   @IsPhoneNumber('IN')
@@ -44,6 +45,18 @@ export class UserController {
   @Get('/phone/:phone')
   async getUserByPhone(@Param('phone') phone: string) {
     return await this.userService.getUserByPhone(phone);
+  }
+
+  //Changing Admin Password
+
+  @Put('/reset-pass/:id')
+  async updatePassword(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserPassDto,
+  ) {
+    console.log(dto);
+
+    return await this.userService.resetUserPassword(id, dto);
   }
 
   @Get('/:id')

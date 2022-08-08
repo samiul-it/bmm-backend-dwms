@@ -83,6 +83,28 @@ export class WholesellersService {
       });
   }
 
+
+  // Resetting a wholeseller Password
+
+  async resetWholesellerPassword(
+    wholesellerId: string,
+    wholeseller: UpdateWholesellerDto,
+  ): Promise<Wholesellers & import("mongoose").Document<any, any, any> & { _id: import("mongoose").Types.ObjectId; }> {
+    const exists = await this.wholesellersModel
+      .findById(wholesellerId)
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
+    if (!exists) throw new NotFoundException('Wholeseller Not Found');
+
+    const hash = await bcrypt.hash(wholeseller.password, 12);
+    return await this.wholesellersModel
+      .findByIdAndUpdate(wholesellerId, { ...wholeseller, password: hash})
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
+  }
+
   //Deleting a wholeseller
   async deleteWholeseller(id: string) {
     return await this.wholesellersModel.findByIdAndDelete(id).catch((err) => {

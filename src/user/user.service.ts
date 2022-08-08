@@ -13,6 +13,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User, UserDocument } from './user.schema';
 import { UpdateUserRoleDto, UpdateUserDto } from './dto/update-role.dto';
+import { UpdateUserPassDto } from './dto/update-user-pass.dto';
 
 @Injectable()
 export class UserService {
@@ -61,6 +62,18 @@ export class UserService {
     const user = await this.userModel.findOne({ phone: phone });
     // console.log(user);
     return user;
+  }
+
+  //Reset User Password
+
+  async resetUserPassword(id: string, user: UpdateUserPassDto) {
+    const exists = await this.userModel.findById(id);
+    if (!exists) throw new NotFoundException('User not found');
+    const hash = await bcrypt.hash(user.password, 12);
+    return await this.userModel.findByIdAndUpdate(id, {
+      ...user,
+      password: hash,
+    });
   }
 
   // async searchUserByPhone(phone: string) {

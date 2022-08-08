@@ -39,7 +39,7 @@ export class WholesellersController {
 
   //Getting All Wholesellers
   @Get('/')
-  async allWholesellers(@AdminUser() user: any) {
+  async allWholesellers( user: any) {
     return await this.wholesellersService.getAllWholesellers();
   }
 
@@ -52,6 +52,21 @@ export class WholesellersController {
     @AdminUser() user: any,
   ) {
     return await this.wholesellersService.updateWholeseller(id, wholeseller);
+  }
+
+  //Changing wholesellers Password
+
+  @Put('/reset-pass/:id')
+  async updatePassword(
+    @Param('id') id: string,
+    @Body() wholeseller: UpdateWholesellerDto,
+  ) {
+    console.log(wholeseller);
+    
+    return await this.wholesellersService.resetWholesellerPassword(
+      id,
+      wholeseller,
+    );
   }
 
   //Deleting a wholeseller
