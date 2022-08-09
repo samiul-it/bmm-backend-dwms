@@ -18,7 +18,7 @@ export class OrdersService {
     private mailsService: MailerService,
   ) {}
 
-    async generateOrderId() {
+  async generateOrderId() {
     // ex- 2101234
     // '21'+'01234'
     // orderId= current fiscal year + the order number starting from zero
@@ -40,15 +40,16 @@ export class OrdersService {
     date.setMonth(4);
     date.setHours(0, 0, 0, 0);
     // const date = new Date(year, 4, 1);
-    const orderCount = await this.ordersModel.countDocuments();
-    // {
-    //   createdAt: {
-    //     $gte: date,
-    //   },
-    // });
+    const orderCount = await this.ordersModel
+      .find({
+        createdAt: {
+          $gte: date,
+        },
+      })
+      .count();
 
-    id = String(orderCount).padStart(5, '0');
-
+    id = String(orderCount).padStart(6, '0');
+    console.log('return afwa ===>', year.toString().slice(-2), id);
     return year.toString().slice(-2) + id;
   }
 
@@ -109,12 +110,18 @@ export class OrdersService {
     // console.log('buyersList ===>', buyersEmailList);
 
     return await Promise.all(
-      _order.buyers.map(async (buyer) => {
+      _order.buyers.map(async (buyer, i) => {
         _order.total_cost = MainTotal;
         _order.buyers = buyer;
-        
-        const newOrder = new this.ordersModel({..._order, orderId: await this.generateOrderId()});
-        return newOrder.save();
+        const orderId = Number(await this.generateOrderId()) + i;
+        console.log('orderId 2 ===>', orderId);
+
+        const newOrder = await this.ordersModel.create({
+          ..._order,
+          orderId,
+        });
+        return newOrder;
+        // return await newOrder.save();
       }),
     )
       .then(async (order: any) => {
@@ -190,6 +197,11 @@ export class OrdersService {
     const startDate = new Date(query.startDate);
     const endDate = new Date(query.endDate);
 
+    if (query.startDate === query.endDate) {
+      // startDate.setDate(startDate.getDate() - 1);
+      endDate.setDate(endDate.getDate() + 1);
+    }
+
     return await this.ordersModel.aggregate([
       {
         $match: {
@@ -201,7 +213,7 @@ export class OrdersService {
         $group: {
           _id: { $dateToString: { format: '%Y/%m/%d', date: '$createdAt' } },
           totalSale: { $sum: '$total_cost' },
-
+          date: { $first: '$createdAt' },
           totalOrders: { $sum: 1 },
         },
       },

@@ -58,7 +58,7 @@ export class Orders {
   @Prop({ required: true })
   total_cost: number;
 
-   @Prop({ required: true})
+  @Prop({ required: true, unique: true })
   orderId: string;
 }
 
