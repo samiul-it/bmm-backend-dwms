@@ -15,6 +15,7 @@ import { CreateWholesellerDto } from './dto/create-wholeseller.dto';
 import { UpdateWholesellerDto } from './dto/update-wholeseller.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminUser } from 'src/auth/admin-user.decorator';
+import { CurrentUser } from 'src/auth/current-user.decorator';
 
 @UseGuards(AuthGuard())
 @Controller('wholesellers')
@@ -39,7 +40,7 @@ export class WholesellersController {
 
   //Getting All Wholesellers
   @Get('/')
-  async allWholesellers(@AdminUser() user: any) {
+  async allWholesellers(user: any) {
     return await this.wholesellersService.getAllWholesellers();
   }
 
@@ -52,6 +53,23 @@ export class WholesellersController {
     @AdminUser() user: any,
   ) {
     return await this.wholesellersService.updateWholeseller(id, wholeseller);
+  }
+
+  //Changing wholesellers Password
+
+  @Put('/reset-pass/:id')
+  async updatePassword(
+    @Param('id') id: string,
+    @Body() wholeseller: UpdateWholesellerDto,
+    @CurrentUser() cu: any,
+  ) {
+    // console.log('wholeseller', wholeseller);
+
+    return await this.wholesellersService.resetWholesellerPassword(
+      id,
+      wholeseller,
+      cu,
+    );
   }
 
   //Deleting a wholeseller

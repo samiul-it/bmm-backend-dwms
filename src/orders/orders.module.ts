@@ -9,8 +9,6 @@ import { OrdersController } from './orders.controller';
 import { Orders, OrdersSchema } from './orders.schema';
 import { OrdersService } from './orders.service';
 
-console.log('dotEnv ===>', process.env.SMTP_HOST);
-
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
