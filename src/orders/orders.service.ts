@@ -49,7 +49,7 @@ export class OrdersService {
       .count();
 
     id = String(orderCount).padStart(6, '0');
-    console.log('return afwa ===>', year.toString().slice(-2), id);
+    // console.log('return afwa ===>', year.toString().slice(-2), id);
     return year.toString().slice(-2) + id;
   }
 
@@ -113,12 +113,10 @@ export class OrdersService {
       _order.buyers.map(async (buyer, i) => {
         _order.total_cost = MainTotal;
         _order.buyers = buyer;
-        const orderId = Number(await this.generateOrderId()) + i;
-        console.log('orderId 2 ===>', orderId);
 
         const newOrder = await this.ordersModel.create({
           ..._order,
-          orderId,
+          orderId: Number(await this.generateOrderId()) + i,
         });
         return newOrder;
         // return await newOrder.save();
@@ -164,31 +162,57 @@ export class OrdersService {
       endDate.setDate(endDate.getDate() + 1);
     }
 
-    console.log(startDate, endDate);
+    // console.log(startDate, endDate);
 
     // const from = new Date('2022-07-01');
     // const to = new Date('2022-07-29');
 
-    return await this.ordersModel.aggregate([
+    const data = await this.ordersModel.aggregate([
       {
         $match: {
-          // $and: andfilter,
-          createdAt: { $gte: startDate, $lte: endDate },
+          createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
+        },
+      },
+      {
+        $project: {
+          dateParts: {
+            // This will split the date stored in `dateField` into parts
+            $dateToParts: {
+              date: '$createdAt',
+              // This can be an Olson timezone, such as Europe/London, or
+              // a fixed offset, such as +0530 for India.
+              timezone: '+05:30',
+            },
+          },
+          total: { $sum: '$total_cost' },
         },
       },
       {
         $group: {
-          _id: { $dateToString: { format: '%Y/%m/%d', date: '$createdAt' } },
-          date: { $first: '$createdAt' },
-          totalSale: { $sum: '$total_cost' },
+          // @ts-ignore
+          // _id: { $dateToString: { format: '%Y/%m/%d', date: '$createdAt'} },
+          _id: {
+            year: '$dateParts.year',
+            month: '$dateParts.month',
+            day: '$dateParts.day',
+          },
+          date: { $first: '$dateParts' },
+          totalSale: { $sum: '$total' },
           totalOrders: { $sum: 1 },
         },
       },
+
       {
-        // @ts-ignore
         $sort: { _id: 1 },
       },
     ]);
+
+    return await Promise.all(
+      data.map((d) => {
+        d._id = d._id.year + '-' + d._id.month + '-' + d._id.day;
+        return d;
+      }),
+    );
   }
 
   async getGraphDataByUserId(query: any, user: any) {
@@ -202,7 +226,7 @@ export class OrdersService {
       endDate.setDate(endDate.getDate() + 1);
     }
 
-    return await this.ordersModel.aggregate([
+    const data = await this.ordersModel.aggregate([
       {
         $match: {
           buyers: user._id,
@@ -210,17 +234,44 @@ export class OrdersService {
         },
       },
       {
-        $group: {
-          _id: { $dateToString: { format: '%Y/%m/%d', date: '$createdAt' } },
-          totalSale: { $sum: '$total_cost' },
-          date: { $first: '$createdAt' },
-          totalOrders: { $sum: 1 },
+        $project: {
+          dateParts: {
+            // This will split the date stored in `dateField` into parts
+            $dateToParts: {
+              date: '$createdAt',
+              // This can be an Olson timezone, such as Europe/London, or
+              // a fixed offset, such as +0530 for India.
+              timezone: '+05:30',
+            },
+          },
+          total: { $sum: '$total_cost' },
         },
       },
       {
-        // @ts-ignore
+        $group: {
+          // @ts-ignore
+          // _id: { $dateToString: { format: '%Y/%m/%d', date: '$createdAt'} },
+          _id: {
+            year: '$dateParts.year',
+            month: '$dateParts.month',
+            day: '$dateParts.day',
+          },
+          date: { $first: '$dateParts' },
+          totalSale: { $sum: '$total' },
+          totalOrders: { $sum: 1 },
+        },
+      },
+
+      {
         $sort: { _id: 1 },
       },
     ]);
+
+    return await Promise.all(
+      data.map((d) => {
+        d._id = d._id.year + '-' + d._id.month + '-' + d._id.day;
+        return d;
+      }),
+    );
   }
 }
