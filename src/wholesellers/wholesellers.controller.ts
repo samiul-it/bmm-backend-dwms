@@ -61,10 +61,9 @@ export class WholesellersController {
   async updatePassword(
     @Param('id') id: string,
     @Body() wholeseller: UpdateWholesellerDto,
-    @CurrentUser() cu:any,
+    @CurrentUser() cu: any,
   ) {
     // console.log('wholeseller', wholeseller);
-    
 
     return await this.wholesellersService.resetWholesellerPassword(
       id,
