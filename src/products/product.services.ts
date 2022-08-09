@@ -190,7 +190,9 @@ export class ProductService {
 
   async updateProductBulk(createProductDto: any[]) {
     try {
-      let allProducts = await this.productModel.find();
+      let allProducts = await this.productModel.find({
+        category: createProductDto[0]?.category,
+      });
       const adding = [];
       const updating = [];
       await Promise.all(
@@ -230,6 +232,8 @@ export class ProductService {
         (item) => new mongoose.Types.ObjectId(item._id),
       );
       const arr2 = allProducts.map((item) => item._id);
+      console.log('arr2 ==>', arr2);
+
       const deleting = arr_diff(arr1, arr2);
 
       // console.log('adding ===>', adding);
