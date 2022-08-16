@@ -50,7 +50,6 @@ export class WholesellersController {
   async updateProduct(
     @Param('id') id: string,
     @Body() wholeseller: UpdateWholesellerDto,
-    @AdminUser() user: any,
   ) {
     return await this.wholesellersService.updateWholeseller(id, wholeseller);
   }

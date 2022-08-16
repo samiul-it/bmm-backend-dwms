@@ -75,7 +75,7 @@ export class WholesellersService {
       .catch((err) => {
         throw new InternalServerErrorException(err);
       });
-    if (!exists) throw new NotFoundException('Wholeseller Not Found');
+    if (!exists) throw new NotFoundException('user Not Found');
     return await this.wholesellersModel
       .findByIdAndUpdate(wholesellerId, wholeseller)
       .catch((err) => {
