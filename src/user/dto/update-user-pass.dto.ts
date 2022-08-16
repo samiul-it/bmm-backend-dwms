@@ -7,4 +7,9 @@ export class UpdateUserPassDto extends PartialType(CreateUserDto) {
   @MinLength(6)
   @MaxLength(18)
   newPassword: string;
+
+  @IsString()
+  @MinLength(6)
+  @MaxLength(18)
+  name: string;
 }
