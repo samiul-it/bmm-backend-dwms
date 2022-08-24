@@ -17,6 +17,7 @@ import { OrdersModule } from './orders/orders.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
       useFactory: async (configService: ConfigService) => ({
         transport: {
           host: configService.get('SMTP_HOST'),
-          // port: configService.get('SMTP_PORT'),
+          port: configService.get('SMTP_PORT'),
           // service: configService.get('SMTP_SERVICE'),
           auth: {
             user: configService.get('SMTP_USER'),
@@ -73,6 +74,7 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
     AuthModule,
     WholesellersModule,
     OrdersModule,
+    NotificationModule,
 
     // SmsModule,
     // EmailModule,

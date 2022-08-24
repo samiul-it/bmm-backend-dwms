@@ -11,11 +11,13 @@ import { Category, CategoryDocument } from './category.schema';
 import { CreateCategoryDto } from './dto/create.category.dto';
 import { UpdateCategoryDto } from './dto/update.category.dto';
 import * as bcrypt from 'bcrypt';
+import { NotificationGateway } from 'src/notification/notification.gateway';
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    private notificationServer: NotificationGateway,
   ) {}
 
   async createCategory(category: CreateCategoryDto) {
@@ -24,9 +26,20 @@ export class CategoryService {
       throw new BadRequestException(
         `slug-${category.slug} already exists, slug must be unique`,
       );
-    return await new this.categoryModel(category).save().catch((err) => {
-      throw new InternalServerErrorException(err, 'Category Creation Faileds');
-    });
+    return await new this.categoryModel(category)
+      .save()
+      .then(() => {
+        this.notificationServer.server.emit('notification', {
+          message: 'new Category Added Socket Message 🚀',
+          data: category,
+        });
+      })
+      .catch((err) => {
+        throw new InternalServerErrorException(
+          err,
+          'Category Creation Faileds',
+        );
+      });
   }
 
   async createCategoryBulk(category: CreateCategoryDto[]) {

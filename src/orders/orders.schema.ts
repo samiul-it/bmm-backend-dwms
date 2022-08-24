@@ -40,6 +40,17 @@ class Products {
   quantity: number;
 }
 
+class Status {
+  @Prop({ default: 'placed' })
+  status: string;
+
+  @Prop({ default: new Date() })
+  createdAt: Date;
+
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+  user: string;
+}
+
 @Schema({ timestamps: true })
 export class Orders {
   @Prop({ required: true })
@@ -60,6 +71,8 @@ export class Orders {
 
   @Prop({ required: true, unique: true })
   orderId: string;
+
+  status: Status[];
 }
 
 export const OrdersSchema = SchemaFactory.createForClass(Orders);

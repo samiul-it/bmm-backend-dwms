@@ -11,10 +11,16 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { log } from 'console';
 import { ObjectId } from 'mongoose';
+import { NotificationGateway } from 'src/notification/notification.gateway';
+import { Category, CategoryDocument } from 'src/ctegory/category.schema';
+import { WholesellersService } from 'src/wholesellers/wholesellers.service';
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
+    private notificationServer: NotificationGateway,
+    private wholesellersService: WholesellersService,
   ) {}
 
   async createProduct(product: CreateProductDto) {
@@ -23,9 +29,22 @@ export class ProductService {
       throw new BadRequestException(
         `slug-${product.slug} already exists, slug must be unique`,
       );
-    return await new this.productModel(product).save().catch((err) => {
-      throw new InternalServerErrorException(err, 'Product Creation Faileds');
-    });
+    const currentProductCategory: any = await this.categoryModel.findById(
+      product.category,
+    );
+
+    return await new this.productModel(product)
+      .save()
+      .then(() => {
+        this.notificationServer.server.emit('notification', {
+          message: `New Product Added in Category: ${currentProductCategory.name} | Product Name: ${product.product_name}`,
+          type: 'CREATE',
+          data: product,
+        });
+      })
+      .catch((err) => {
+        throw new InternalServerErrorException(err, 'Product Creation Faileds');
+      });
   }
 
   //? CreateBulk
@@ -163,12 +182,27 @@ export class ProductService {
   }
 
   async updateProduct(productId: string, product: UpdateProductDto) {
-    const exists = await this.productModel.findById(productId).catch((err) => {
-      throw new InternalServerErrorException(err);
-    });
+    const exists: any = await this.productModel
+      .findById(productId)
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
     if (!exists) throw new NotFoundException('Product not Found');
     return await this.productModel
       .findByIdAndUpdate(productId, product)
+      .then(async () => {
+        this.notificationServer.server.emit('notification', {
+          message: `Product Updated: "${product.product_name}"`,
+          type: 'UPDATE',
+          data: { ...product, category: exists?.category },
+        });
+
+        const ff = await this.wholesellersService.findUserByCategoryId(
+          exists?.category,
+        );
+
+        console.log('users by categoryID ==>', ff);
+      })
       .catch((err) => {
         throw new InternalServerErrorException(err);
       });

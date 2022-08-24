@@ -69,7 +69,7 @@ export class OrdersService {
     await this.mailsService
       .sendMail({
         to: reciver,
-        from: 'Sk.512go@gmail.com',
+        from: 'rp73006@gmail.com',
         subject: 'Order Created',
         text: 'Order Created',
         template: 'emailTemplet',
@@ -123,7 +123,7 @@ export class OrdersService {
       }),
     )
       .then(async (order: any) => {
-        console.log('order ===>', order);
+        // console.log('order ===>', order);
         await Promise.all(
           order.map(async (odr: any) => {
             await this.wholesellersModel
@@ -273,5 +273,24 @@ export class OrdersService {
         return d;
       }),
     );
+  }
+
+  async updateOrderStatus(id: any) {
+    const status = {
+      status: '',
+      createdAt: '',
+      user: '',
+    };
+
+    const exists = await this.ordersModel.findById(id);
+
+    if (exists) {
+      if (exists.status[exists.status?.length - 1]?.status !== status.status) {
+        return await this.ordersModel.findByIdAndUpdate(id, {
+          ...exists,
+          status: [...exists.status],
+        });
+      }
+    }
   }
 }
