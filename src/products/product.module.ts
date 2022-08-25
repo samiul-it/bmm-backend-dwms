@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Product, ProductSchema } from './product.schema';
-import { NotificationGateway } from 'src/notification/notification.gateway';
 import { productController } from './product.controller';
 import { PassportModule } from '@nestjs/passport';
 import { ProductService } from './product.services';
@@ -20,6 +19,7 @@ import { WholesellersModule } from 'src/wholesellers/wholesellers.module';
     ConfigModule,
     JwtModule,
     WholesellersModule,
+    NotificationModule,
     MongooseModule.forFeature([
       {
         name: Product.name,
