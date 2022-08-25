@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Orders, OrdersDocument } from './orders.schema';
 import mongoose, { Model } from 'mongoose';
@@ -88,8 +88,14 @@ export class OrdersService {
       });
   }
 
-  async createOrder(order: createOrderDto) {
+  async createOrder(order: createOrderDto, user: any) {
     // console.log(order);
+    const status = {
+      status: ' Order Placed',
+      createdAt: new Date(),
+      user: user?._id,
+    };
+
     let _order = order;
     let MainTotal = 0;
 
@@ -112,6 +118,7 @@ export class OrdersService {
 
         const newOrder = await this.ordersModel.create({
           ..._order,
+          status: [status],
           orderId: _orderId,
         });
 
@@ -300,22 +307,49 @@ export class OrdersService {
     );
   }
 
-  async updateOrderStatus(id: any) {
+  async updateOrderStatus(id: any, query: any, user: any) {
     const status = {
-      status: '',
-      createdAt: '',
-      user: '',
+      status: query,
+      createdAt: new Date(),
+      user: user?._id,
     };
 
     const exists = await this.ordersModel.findById(id);
+    console.log(status);
 
     if (exists) {
-      if (exists.status[exists.status?.length - 1]?.status !== status.status) {
-        return await this.ordersModel.findByIdAndUpdate(id, {
-          ...exists,
-          status: [...exists.status],
-        });
+      if (
+        exists?.status &&
+        exists.status[exists.status?.length - 1]?.status !== status.status
+      ) {
+        // const result = await this.ordersModel.findByIdAndUpdate(id, {
+        //   ...exists,
+        //   status: [...exists.status, status],
+        // });
+
+        exists?.status.push(status);
+
+        const result = await exists.save();
+
+        // console.log("If++",result);
+
+        return result;
+      } else if (!exists?.status) {
+        // const result = await this.ordersModel.findByIdAndUpdate(id, {
+        //   ...exists,
+        //   status: [status],
+        // });
+
+        exists['status'] = [status];
+
+        const result = await exists.save();
+
+        // console.log("Else --",result);
+
+        return result;
       }
+    } else {
+      throw new NotFoundException('Order  Not Found');
     }
   }
 }
