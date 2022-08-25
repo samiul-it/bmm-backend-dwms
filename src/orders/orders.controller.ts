@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   Render,
   UseGuards,
@@ -45,8 +46,8 @@ export class OrdersController {
   // }
 
   @Post('/create')
-  async createOrder(@Body() order: createOrderDto) {
-    return await this.ordersService.createOrder(order);
+  async createOrder(@Body() order: createOrderDto ,@CurrentUser() user:any) {
+    return await this.ordersService.createOrder(order,user);
   }
 
   @Get('/testejs')
@@ -66,8 +67,14 @@ export class OrdersController {
   //   return await this.ordersService.deleteOrder(id);
   // }
 
-  @Post('/:id')
-  async updateOrderStatus(@Param('id') id: string) {
-    return await this.ordersService.updateOrderStatus(id);
+  @Put('/:id')
+  async updateOrderStatus(
+    @Param('id') id: string,
+    @Query('status') status: any,
+    @CurrentUser() user: any,
+  ) {
+    // console.log(status);
+
+    return await this.ordersService.updateOrderStatus(id, status, user);
   }
 }

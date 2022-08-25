@@ -38,4 +38,6 @@ export class createOrderDto {
   @IsNotEmpty()
   @IsNumber()
   total_cost: number;
+
+  
 }
