@@ -16,10 +16,10 @@ class Message {
 
 @Schema({ timestamps: true })
 export class Notification {
-  @Prop({ required: true, unique: true })
+  @Prop({ unique: true, required: true })
   userId: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: false })
   socketId: string;
 
   @Prop({ required: true })

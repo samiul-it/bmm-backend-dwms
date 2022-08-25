@@ -18,13 +18,10 @@ export class NotificationGateway {
   @UseGuards(WsGuard)
   @SubscribeMessage('connection')
   async handleConnection(socket: any, data: any) {
-    // console.log('SocketId ===>', socket.id);
-    // console.log('DATA ==>', data);
     if (data?._id) {
       const _data = {
         socketId: socket?.id,
         userId: data?._id,
-        message: '',
       };
       await this.notificationService.createNotification(_data);
     }

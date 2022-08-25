@@ -9,6 +9,9 @@ import {
 } from 'src/wholesellers/wholesellers.schema';
 import { MailerService } from '@nestjs-modules/mailer';
 import { join } from 'path';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationGateway } from 'src/notification/notification.gateway';
+import { UserService } from 'src/user/user.service';
 @Injectable()
 export class OrdersService {
   constructor(
@@ -16,6 +19,9 @@ export class OrdersService {
     @InjectModel(Wholesellers.name)
     private wholesellersModel: Model<WholesellersDocument>,
     private mailsService: MailerService,
+    private notificationService: NotificationService,
+    private notificationServer: NotificationGateway,
+    private userService: UserService,
   ) {}
 
   async generateOrderId() {
@@ -97,27 +103,57 @@ export class OrdersService {
       getSum(item);
     });
 
-    // let buyersEmailList: any[];
-
-    // await this.wholesellersModel
-    //   .find({
-    //     _id: { $in: _order.buyers },
-    //   })
-    //   .then((res) => {
-    //     buyersEmailList = res.map((b) => b.email);
-    //   });
-
-    // console.log('buyersList ===>', buyersEmailList);
-
     return await Promise.all(
-      _order.buyers.map(async (buyer, i) => {
+      _order.buyers.map(async (buyer: any, i) => {
         _order.total_cost = MainTotal;
         _order.buyers = buyer;
+        console.log('buyer ==========>', buyer);
+        const _orderId = Number(await this.generateOrderId()) + i;
 
         const newOrder = await this.ordersModel.create({
           ..._order,
-          orderId: Number(await this.generateOrderId()) + i,
+          orderId: _orderId,
         });
+
+        const admins: any = await this.userService.getAllBackendUsers(null);
+        const _buyer = await this.wholesellersModel.findById(buyer);
+
+        this.notificationService
+          .pushNotification({
+            userId: buyer,
+            message: `Your Order Has been Placed, Order ID: #${_orderId}`,
+          })
+          .then((res: any) => {
+            this.notificationServer?.server
+              ?.to(res?.socketId)
+              .emit('notification', {
+                message: `Your Order Has been Placed, Order ID: #${_orderId}`,
+                type: 'ORDER',
+                data: { category: '' },
+              });
+          });
+
+        await Promise.all(
+          admins?.map(async (ad: any) => {
+            await this.notificationService
+              .pushNotification({
+                userId: ad._id.toString(),
+                message: `New Order Placed For Wholeseller: ${_buyer.name}`,
+              })
+              .then((res: any) => {
+                this.notificationServer.server
+                  ?.to(res?.socketId)
+                  ?.emit('notification', {
+                    message: `New Order Placed For Wholeseller: ${_buyer.name}`,
+                    type: 'ADDED',
+                    data: { category: '' },
+                  });
+              });
+
+            return;
+          }),
+        );
+
         return newOrder;
         // return await newOrder.save();
       }),
@@ -139,17 +175,6 @@ export class OrdersService {
       .catch((err) => {
         console.log(err);
       });
-
-    // return {
-    //   ..._order,
-    //   total_cost: MainTotal,
-    // };
-
-    const createdOrder = new this.ordersModel({
-      ..._order,
-      total_cost: MainTotal,
-    });
-    return await createdOrder.save();
   }
 
   async getGraphData(query: any) {
