@@ -3,16 +3,16 @@ import mongoose, { Document } from 'mongoose';
 
 export type OrdersDocument = Orders & Document;
 
-class Buyers {
+export class Buyers {
   type: mongoose.Schema.Types.ObjectId;
   ref: 'Users';
 }
 
-class CreatedBy {
+export class CreatedBy {
   type: mongoose.Schema.Types.ObjectId;
   ref: 'Users';
 }
-class Product {
+export class Product {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Products',
@@ -33,11 +33,22 @@ class Product {
   mrp: number;
 }
 
-class Products {
+export class Products {
   @Prop({ required: true })
   product: Product;
   @Prop({ required: true })
   quantity: number;
+}
+
+export class Status {
+  @Prop({ default: 'placed', required: true })
+  status: string;
+
+  @Prop({ default: new Date(), required: true })
+  createdAt: Date;
+
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+  user: string;
 }
 
 @Schema({ timestamps: true })
@@ -60,6 +71,9 @@ export class Orders {
 
   @Prop({ required: true, unique: true })
   orderId: string;
+
+  @Prop({ required: true })
+  status: Status[];
 }
 
 export const OrdersSchema = SchemaFactory.createForClass(Orders);

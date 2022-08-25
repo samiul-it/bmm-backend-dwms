@@ -7,7 +7,7 @@ import {
 import { CreateWholesellerDto } from './dto/create-wholeseller.dto';
 import { UpdateWholesellerDto } from './dto/update-wholeseller.dto';
 import { Wholesellers, WholesellersDocument } from './wholesellers.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 
@@ -245,5 +245,19 @@ export class WholesellersService {
       console.log(err);
       return new InternalServerErrorException(err);
     }
+  }
+
+  async findUserByCategoryId(id: string) {
+    return await this.wholesellersModel.aggregate([
+      {
+        $match: {
+          catagories: {
+            $elemMatch: { categoryId: new mongoose.Schema.Types.ObjectId(id) },
+          },
+        },
+      },
+      //@ts-ignore
+      { $group: { _id: '$id' } },
+    ]);
   }
 }

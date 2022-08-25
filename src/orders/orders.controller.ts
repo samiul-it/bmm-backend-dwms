@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
+  Put,
   Query,
   Render,
   UseGuards,
@@ -13,6 +15,7 @@ import { CurrentUser } from 'src/auth/current-user.decorator';
 import { createOrderDto } from './dto/create-order.dto';
 import { OrdersService } from './orders.service';
 import ejs from 'ejs';
+import { modelNames } from 'mongoose';
 @UseGuards(AuthGuard())
 @Controller('orders')
 export class OrdersController {
@@ -43,8 +46,8 @@ export class OrdersController {
   // }
 
   @Post('/create')
-  async createOrder(@Body() order: createOrderDto) {
-    return await this.ordersService.createOrder(order);
+  async createOrder(@Body() order: createOrderDto ,@CurrentUser() user:any) {
+    return await this.ordersService.createOrder(order,user);
   }
 
   @Get('/testejs')
@@ -63,4 +66,15 @@ export class OrdersController {
   // async deleteOrder(@Param('id') id: string) {
   //   return await this.ordersService.deleteOrder(id);
   // }
+
+  @Put('/:id')
+  async updateOrderStatus(
+    @Param('id') id: string,
+    @Query('status') status: any,
+    @CurrentUser() user: any,
+  ) {
+    // console.log(status);
+
+    return await this.ordersService.updateOrderStatus(id, status, user);
+  }
 }

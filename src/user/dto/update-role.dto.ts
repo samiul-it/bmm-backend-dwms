@@ -36,7 +36,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsNotEmpty()
-  alias?: string;
+  email?: string;
 
   @IsOptional()
   @IsNotEmpty()
@@ -45,19 +45,6 @@ export class UpdateUserDto {
   @IsPhoneNumber('IN')
   phone: string;
 
-  @IsIn([
-    'user',
-    'coloringArtist',
-    'croppingArtist',
-    'correctionArtist',
-    'admin',
-    'processManager',
-    'productionManager',
-    'sellsManager',
-    'shipmentExecutive',
-    'processExecutive',
-    'productionExecutive',
-    'accountsExecutive',
-  ])
+  @IsIn(['admin'])
   role: string;
 }

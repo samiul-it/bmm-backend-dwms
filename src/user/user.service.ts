@@ -129,9 +129,10 @@ export class UserService {
   }
 
   async updateBackendUser(user: UpdateUserDto, id: string) {
+    const { phone, email, name } = user;
     const exists = await this.userModel.findById(id);
     if (!exists) throw new NotFoundException('User not found');
-    return await this.userModel.findByIdAndUpdate(id, { ...user });
+    return await this.userModel.findByIdAndUpdate(id, { phone, email, name });
   }
 
   async deleteUser(id: string) {
