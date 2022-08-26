@@ -33,7 +33,7 @@ export class NotificationService {
       userId: data.userId,
     });
 
-    console.log('Found existing Notification', exists);
+    // console.log('Found existing Notification', exists);
 
     if (exists) {
       const _data = {

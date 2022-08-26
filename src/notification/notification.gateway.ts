@@ -8,7 +8,7 @@ import {
 import { NotificationService } from './notification.service';
 import { WsGuard } from '../WSGuard';
 
-@WebSocketGateway(5001, { cors: '*' })
+@WebSocketGateway({ cors: '*' })
 export class NotificationGateway {
   constructor(private notificationService: NotificationService) {}
 

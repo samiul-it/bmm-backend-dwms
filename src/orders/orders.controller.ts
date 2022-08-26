@@ -6,16 +6,13 @@ import {
   Post,
   Put,
   Query,
-  Render,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { get } from 'http';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { createOrderDto } from './dto/create-order.dto';
 import { OrdersService } from './orders.service';
-import ejs from 'ejs';
-import { modelNames } from 'mongoose';
+
 @UseGuards(AuthGuard())
 @Controller('orders')
 export class OrdersController {
@@ -46,15 +43,8 @@ export class OrdersController {
   // }
 
   @Post('/create')
-  async createOrder(@Body() order: createOrderDto ,@CurrentUser() user:any) {
-    return await this.ordersService.createOrder(order,user);
-  }
-
-  @Get('/testejs')
-  async testejs() {
-    return ejs.render('index', {
-      name: 'John Doe',
-    });
+  async createOrder(@Body() order: createOrderDto, @CurrentUser() user: any) {
+    return await this.ordersService.createOrder(order, user);
   }
 
   // @Put('/:id')

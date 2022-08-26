@@ -67,7 +67,7 @@ export class OrdersService {
 
   async getAllOrderByUserId(user: any) {
     return await this.ordersModel.find({
-      buyers: new mongoose.Types.ObjectId(user._id),
+      buyersId: new mongoose.Types.ObjectId(user._id),
     });
   }
 
@@ -110,20 +110,26 @@ export class OrdersService {
     });
 
     return await Promise.all(
-      _order.buyers.map(async (buyer: any, i) => {
+      _order.buyersId.map(async (buyer: any, i) => {
         _order.total_cost = MainTotal;
-        _order.buyers = buyer;
+
         console.log('buyer ==========>', buyer);
+
         const _orderId = Number(await this.generateOrderId()) + i;
+        const admins: any = await this.userService.getAllBackendUsers(null);
+        const _buyer = await this.wholesellersModel.findById(buyer);
 
         const newOrder = await this.ordersModel.create({
           ..._order,
+          buyersId: _buyer._id,
+          buyersName: _buyer.name,
+          buyersEmail: _buyer.email,
+          buyersPhone: _buyer.phone,
+          buyersAddress: _buyer.address,
+          buyersPlace: _buyer.place,
           status: [status],
           orderId: _orderId,
         });
-
-        const admins: any = await this.userService.getAllBackendUsers(null);
-        const _buyer = await this.wholesellersModel.findById(buyer);
 
         this.notificationService
           .pushNotification({
@@ -170,7 +176,7 @@ export class OrdersService {
         await Promise.all(
           order.map(async (odr: any) => {
             await this.wholesellersModel
-              .findById(odr.buyers)
+              .findById(odr.buyersId)
               .then(async (res: any) => {
                 await this.sendEmail(res.email, odr);
               });

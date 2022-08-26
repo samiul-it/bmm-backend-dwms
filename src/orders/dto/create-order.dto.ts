@@ -29,7 +29,7 @@ export class createOrderDto {
   @IsNotEmpty()
   @IsNumber()
   @IsString()
-  buyers: [];
+  buyersId: [];
 
   @IsMongoId()
   @IsNotEmpty()
@@ -38,6 +38,4 @@ export class createOrderDto {
   @IsNotEmpty()
   @IsNumber()
   total_cost: number;
-
-  
 }
