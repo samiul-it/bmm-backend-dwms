@@ -18,6 +18,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { NotificationModule } from './notification/notification.module';
+import { CategoryrequestModule } from './categoryrequest/categoryrequest.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { NotificationModule } from './notification/notification.module';
     WholesellersModule,
     OrdersModule,
     NotificationModule,
+    CategoryrequestModule,
 
     // SmsModule,
     // EmailModule,
