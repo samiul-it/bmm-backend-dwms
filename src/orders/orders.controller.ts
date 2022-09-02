@@ -37,34 +37,33 @@ export class OrdersController {
       return await this.ordersService.getGraphDataByUserId(query, user);
     }
   }
-  // @Get('/:id')
-  // async getOrderById(@Param('id') id: string) {
-  //   return await this.ordersService.getOrderById(id);
-  // }
+  @Get('getOrderByOrderId/:id')
+  async getOrderByOrderId(@Param('id') id: string) {
+    return await this.ordersService.getOrderByOrderId(id);
+  }
 
   @Post('/create')
   async createOrder(@Body() order: createOrderDto, @CurrentUser() user: any) {
     return await this.ordersService.createOrder(order, user);
   }
 
-  // @Put('/:id')
-  // async updateOrder(@Param('id') id: string, @Body() order: any) {
-  //   return await this.ordersService.updateOrder(id, order);
-  // }
+  @Put('updateOrderDetails/:id')
+  async updateOrder(@Param('id') id: string, @Body() order: any) {
+    return await this.ordersService.updateOrder(id, order);
+  }
 
   // @Delete('/:id')
   // async deleteOrder(@Param('id') id: string) {
   //   return await this.ordersService.deleteOrder(id);
   // }
 
-  @Put('/:id')
+  @Put('updateOrderStatus/:id')
   async updateOrderStatus(
     @Param('id') id: string,
     @Query('status') status: any,
     @CurrentUser() user: any,
   ) {
     // console.log(status);
-
     return await this.ordersService.updateOrderStatus(id, status, user);
   }
 }

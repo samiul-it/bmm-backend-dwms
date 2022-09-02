@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Orders, OrdersDocument } from './orders.schema';
 import mongoose, { Model } from 'mongoose';
@@ -91,7 +95,7 @@ export class OrdersService {
   async createOrder(order: createOrderDto, user: any) {
     // console.log(order);
     const status = {
-      status: ' Order Placed',
+      status: 'Order Placed',
       createdAt: new Date(),
       user: user?._id,
     };
@@ -113,7 +117,7 @@ export class OrdersService {
       _order.buyersId.map(async (buyer: any, i) => {
         _order.total_cost = MainTotal;
 
-        console.log('buyer ==========>', buyer);
+        // console.log('buyer ==========>', buyer);
 
         const _orderId = Number(await this.generateOrderId()) + i;
         const admins: any = await this.userService.getAllBackendUsers(null);
@@ -131,13 +135,13 @@ export class OrdersService {
           orderId: _orderId,
         });
 
-        this.notificationService
+        await this.notificationService
           .pushNotification({
             userId: buyer,
             message: `Your Order Has been Placed, Order ID: #${_orderId}`,
           })
-          .then((res: any) => {
-            this.notificationServer?.server
+          .then(async (res: any) => {
+            await this.notificationServer?.server
               ?.to(res?.socketId)
               .emit('notification', {
                 message: `Your Order Has been Placed, Order ID: #${_orderId}`,
@@ -145,19 +149,29 @@ export class OrdersService {
                 data: { category: '' },
               });
           });
+        // console.log('admins count ==>', admins?.length);
 
         await Promise.all(
           admins?.map(async (ad: any) => {
+            // console.log('admin ===>', ad);
+
             await this.notificationService
               .pushNotification({
-                userId: ad._id.toString(),
-                message: `New Order Placed For Wholeseller: ${_buyer.name}`,
+                userId: ad?._id?.toString(),
+                message: `New Order Placed For Wholeseller: ${_buyer?.name}`,
               })
-              .then((res: any) => {
-                this.notificationServer.server
+              .then(async (res: any) => {
+                console.log('admin push notification ===>', {
+                  _id: res?._id,
+                  userId: res?.userId,
+                  messges: res?.messages.pop(),
+                  buyerName: _buyer?.name,
+                });
+
+                await this?.notificationServer?.server
                   ?.to(res?.socketId)
                   ?.emit('notification', {
-                    message: `New Order Placed For Wholeseller: ${_buyer.name}`,
+                    message: `New Order Placed For Wholeseller: ${_buyer?.name}`,
                     type: 'ADDED',
                     data: { category: '' },
                   });
@@ -314,10 +328,12 @@ export class OrdersService {
   }
 
   async updateOrderStatus(id: any, query: any, user: any) {
+    const updatedBy = await this.userService.getUserById(user?._id);
     const status = {
       status: query,
       createdAt: new Date(),
       user: user?._id,
+      updatedBy: updatedBy?.name,
     };
 
     const exists = await this.ordersModel.findById(id);
@@ -357,5 +373,17 @@ export class OrdersService {
     } else {
       throw new NotFoundException('Order  Not Found');
     }
+  }
+
+  async getOrderByOrderId(id: string) {
+    return await this.ordersModel.findOne({ orderId: id }).catch((err) => {
+      throw new InternalServerErrorException(err);
+    });
+  }
+
+  async updateOrder(id: string, order: any) {
+    return await this.ordersModel.findByIdAndUpdate(id, order).catch((err) => {
+      throw new InternalServerErrorException(err);
+    });
   }
 }

@@ -29,25 +29,25 @@ export class NotificationService {
   async createNotification(data: any) {
     console.log('Called createNotification', data);
 
-    const exists = await this.notificationModal.findOne({
-      userId: data.userId,
+    const exists = await this?.notificationModal?.findOne({
+      userId: data?.userId,
     });
 
-    // console.log('Found existing Notification', exists);
+    console.log('Found existing Notification', exists);
 
     if (exists) {
       const _data = {
-        socketId: data.socketId,
+        socketId: data?.socketId,
       };
       return await this.notificationModal
-        .findOneAndUpdate({ userId: data.userId }, _data)
+        .findOneAndUpdate({ userId: data?.userId }, _data)
         .catch((err) => {
           throw new InternalServerErrorException(err);
         });
     } else {
       const _data = {
-        userId: data.userId,
-        socketId: data.socketId,
+        userId: data?.userId,
+        socketId: data?.socketId,
       };
 
       return await this.notificationModal.create(_data).catch((err) => {
@@ -63,8 +63,10 @@ export class NotificationService {
   }
 
   async pushNotification(data: any) {
+    // console.log('new pushNotification');
+
     const exists: any = await this.notificationModal.findOne({
-      userId: data.userId,
+      userId: data?.userId,
     });
 
     if (exists) {
@@ -72,19 +74,20 @@ export class NotificationService {
       const _data = {
         messages: [
           ...oldMessage,
-          { message: data.message, cretedAt: new Date(), isSeen: false },
+          { message: data?.message, cretedAt: new Date(), isSeen: false },
         ],
       };
+
       return await this.notificationModal
-        .findOneAndUpdate({ userId: data.userId }, _data)
+        .findOneAndUpdate({ userId: data?.userId }, _data, { new: true })
         .catch((err) => {
           throw new InternalServerErrorException(err);
         });
     } else {
       const _data = {
-        userId: data.userId,
+        userId: data?.userId,
         messages: [
-          { message: data.message, cretedAt: new Date(), isSeen: false },
+          { message: data?.message, cretedAt: new Date(), isSeen: false },
         ],
       };
 

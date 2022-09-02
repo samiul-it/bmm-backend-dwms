@@ -49,6 +49,9 @@ export class Status {
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
   user: string;
+
+  @Prop({ required: true })
+  updatedBy: string;
 }
 
 @Schema({ timestamps: true })
