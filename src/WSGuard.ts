@@ -14,7 +14,7 @@ export class WsGuard implements CanActivate {
 
   async canActivate(context: any) {
     const bearerToken =
-      context.args[0].handshake.headers.authorization.split(' ')[1];
+      context?.args[0]?.handshake?.headers?.authorization?.split(' ')[1];
     try {
       // console.log('bearerToken ==>', bearerToken);
 
@@ -26,52 +26,11 @@ export class WsGuard implements CanActivate {
         // console.log('decoded ==>', decoded);
         return decoded;
       } else {
-        console.log('authorization Failed');
+        return null;
       }
-
-      // return new Promise(async (resolve, reject) => {
-      //   if (decoded.role === 'wholeseller') {
-      //     return await this.wholesellerService
-      //       .findOne(decoded.userId)
-      //       .then((user) => {
-      //         if (user) {
-      //           resolve(user);
-      //         } else {
-      //           reject(false);
-      //         }
-      //       });
-      //   } else {
-      //     return await this.userService
-      //       .getUserById(decoded.userId)
-      //       .then((user) => {
-      //         if (user) {
-      //           resolve(user);
-      //         } else {
-      //           reject(false);
-      //         }
-      //       });
-      //   }
-
-      //   // return this.userService
-      //   //   .findByUsername(decoded.username)
-      //   //   .then((user) => {
-      //   //     if (user) {
-      //   //       resolve(user);
-      //   //     } else {
-      //   //       reject(false);
-      //   //     }
-      //   //   });
-      // });
     } catch (ex) {
       console.log(ex);
       return false;
     }
   }
 }
-
-// {
-//   userId: 'weq-twqeqweqweqw-ewqeqweqw-qweqweqw',
-//   socketId: '',
-//   messages: []
-
-// }

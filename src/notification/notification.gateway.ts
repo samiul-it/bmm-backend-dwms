@@ -15,7 +15,7 @@ export class NotificationGateway {
   @WebSocketServer()
   server;
 
-  @UseGuards(WsGuard)
+  // @UseGuards(WsGuard)
   @SubscribeMessage('connection')
   async handleConnection(socket: any, data: any) {
     if (data?._id) {
