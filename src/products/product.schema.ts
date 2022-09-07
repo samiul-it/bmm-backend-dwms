@@ -40,6 +40,9 @@ export class Product {
   attributes: Attributes[];
 
   @Prop()
+  metadata: string[];
+
+  @Prop()
   price_wholesale: number;
 
   @Prop()

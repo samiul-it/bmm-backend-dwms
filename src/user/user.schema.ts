@@ -64,15 +64,11 @@ export class User {
 
   @Prop({ required: false })
   password?: string;
-  
 
   @Prop({
     required: true,
-    default: "admin",
-    enum: [
-      'admin',
-      'wholeseller'
-    ],
+    default: 'admin',
+    enum: ['admin', 'employee'],
   })
   role?: string;
 }

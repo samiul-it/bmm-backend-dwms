@@ -87,10 +87,10 @@ export class ProductService {
   }
 
   async getPagination(query: any) {
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 15;
-    const category_id: string = query.categoryId;
-    const searchQuery = query.search;
+    const page = parseInt(query?.page) || 1;
+    const limit = parseInt(query?.limit) || 15;
+    const category_id: string = query?.categoryId;
+    const searchQuery = query?.search;
     let products: object[];
     let totalDocuments: any;
     const andfilters = [{ category: new mongoose.Types.ObjectId(category_id) }];
@@ -110,6 +110,7 @@ export class ProductService {
         $or: [
           { product_name: { $regex: regx, $options: 'i' } },
           { product_desc: { $regex: regx, $options: 'i' } },
+          { metadata: { $eq: searchQuery } },
         ],
       });
     }
