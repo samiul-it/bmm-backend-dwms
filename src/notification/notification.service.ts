@@ -27,18 +27,19 @@ export class NotificationService {
   ) {}
 
   async createNotification(data: any) {
-    console.log('Called createNotification', data);
+    console.log('Called createNotification service', data);
 
     const exists = await this?.notificationModal?.findOne({
       userId: data?.userId,
     });
 
-    console.log('Found existing Notification', exists);
+    // console.log('Found existing Notification', exists);
 
     if (exists) {
       const _data = {
         socketId: data?.socketId,
       };
+      console.log('update socketId');
       return await this.notificationModal
         .findOneAndUpdate({ userId: data?.userId }, _data)
         .catch((err) => {
@@ -49,6 +50,7 @@ export class NotificationService {
         userId: data?.userId,
         socketId: data?.socketId,
       };
+      console.log('create socketId');
 
       return await this.notificationModal.create(_data).catch((err) => {
         throw new InternalServerErrorException(err);
@@ -65,7 +67,7 @@ export class NotificationService {
   async pushNotification(data: any) {
     // console.log('new pushNotification');
 
-    const exists: any = await this.notificationModal.findOne({
+    const exists = await this.notificationModal.findOne({
       userId: data?.userId,
     });
 
@@ -74,7 +76,11 @@ export class NotificationService {
       const _data = {
         messages: [
           ...oldMessage,
-          { message: data?.message, cretedAt: new Date(), isSeen: false },
+          {
+            message: data?.message,
+            cretedAt: new Date().toUTCString(),
+            isSeen: false,
+          },
         ],
       };
 

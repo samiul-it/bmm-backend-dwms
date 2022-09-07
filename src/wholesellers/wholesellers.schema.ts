@@ -31,7 +31,7 @@ export class Wholesellers {
   @Prop({
     required: true,
     default: 'wholeseller',
-    enum: ['admin', 'wholeseller'],
+    enum: ['wholeseller'],
   })
   role?: string;
 

@@ -64,6 +64,10 @@ export class OrdersService {
   }
 
   async getAllOrders(user: any) {
+    return await this.ordersModel.find();
+  }
+
+  async getAllEmployeeOrders(user: any) {
     return await this.ordersModel.find({
       createdBy: new mongoose.Types.ObjectId(user._id),
     });
