@@ -236,8 +236,99 @@ export class CategoryService {
       },
     ];
 
+    // console.log(userCategoriesIds);
+
     // @ts-ignore
     andfilters.push({ $expr: { $in: ['$_id', userCategoriesIds] } });
+    // andfilters.push({ $expr: { $nin: ['$_id', userCategoriesIds] } });
+
+    // console.log(andfilters);
+
+    // if (searchQuery) {
+    //   andfilters.push({
+    //     // @ts-ignore
+    //     $or: [
+    //       { name: { $regex: regx, $options: 'i' } },
+    //       { description: { $regex: regx, $options: 'i' } },
+    //     ],
+    //   });
+    // }
+    // console.log('userCategoriesIds ====>', userCategoriesIds);
+
+    categories = await this.categoryModel
+
+      .aggregate([
+        {
+          $match: {
+            $and: andfilters,
+          },
+        },
+      ])
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
+
+    if (!categories) throw new NotFoundException('Products not Found');
+
+    const itemCount = await this.categoryModel.aggregate([
+      {
+        $match: {
+          $and: andfilters,
+        },
+      },
+      { $count: 'totalDocuments' },
+    ]);
+
+    totalDocuments = itemCount[0]?.totalDocuments;
+
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    const result = {
+      curruntPage: page,
+      limit,
+      totalPages,
+      totalDocuments,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
+      itemList: categories,
+    };
+
+    return result;
+  }
+
+  async lockedCategoriesForWholeseller(query: any, userCategories: any[]) {
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 15;
+    // const category_id: string = query.categoryId;
+    const searchQuery = query.search;
+    let categories: object[];
+    let totalDocuments: any;
+
+    let userCategoriesIds: any = await Promise.all(
+      userCategories.map((category) => {
+        return new mongoose.Types.ObjectId(category.categoryId);
+      }),
+    );
+
+    const regx = new RegExp(searchQuery);
+    const andfilters = [
+      {
+        $or: [
+          { name: { $regex: regx, $options: 'i' } },
+          { description: { $regex: regx, $options: 'i' } },
+        ],
+      },
+    ];
+
+    // console.log(userCategoriesIds);
+
+    // @ts-ignore
+    andfilters.push({ $expr: { $not: { $in: ['$_id', userCategoriesIds] } } });
+    // andfilters.push({ $expr: { $nin: ['$_id', userCategoriesIds] } });
+
+    // console.log(andfilters);
 
     // if (searchQuery) {
     //   andfilters.push({

@@ -33,8 +33,25 @@ export class CategoryController {
   @Get('/getPagination')
   async getPagination(@Query() query: any, @CurrentUser() user: any) {
     // console.log('User ===> ', user);
+    // console.log(query);
+    
     if (user.role === 'wholeseller') {
       return await this.categoryService.getPaginationWholeseller(
+        query,
+        user.catagories,
+      );
+    } else {
+      return await this.categoryService.getPagination(query);
+    }
+  }
+
+  @Get('/lockedCategories')
+  async lockedCategories(@Query() query: any, @CurrentUser() user: any) {
+    // console.log('User ===> ', user);
+    // console.log(query);
+    
+    if (user.role === 'wholeseller') {
+      return await this.categoryService.lockedCategoriesForWholeseller(
         query,
         user.catagories,
       );

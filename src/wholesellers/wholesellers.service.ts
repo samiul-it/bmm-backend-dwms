@@ -42,7 +42,7 @@ export class WholesellersService {
         `Wholeseller-${wholeseller.phone} already exists`,
       );
 
-    // console.log(wholeseller);
+    console.log(wholeseller);
 
     const hash = await bcrypt.hash(wholeseller.password, 12);
     return await new this.wholesellersModel({ ...wholeseller, password: hash })
