@@ -23,18 +23,23 @@ export class Wholesellers {
   // whatsapp?: string;
 
   @Prop({ unique: false, required: true })
-  
   email?: string;
 
-  @Prop({ required: false })
+  @Prop({ required: true })
   password?: string;
 
   @Prop({
     required: true,
     default: 'wholeseller',
-    enum: ['admin', 'wholeseller'],
+    enum: ['wholeseller'],
   })
   role?: string;
+
+  @Prop({ required: true })
+  place: string;
+
+  @Prop({ required: false })
+  address: string;
 }
 
 export const WholesellersSchema = SchemaFactory.createForClass(Wholesellers);

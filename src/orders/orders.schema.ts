@@ -49,6 +49,9 @@ export class Status {
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
   user: string;
+
+  @Prop({ required: true })
+  updatedBy: string;
 }
 
 @Schema({ timestamps: true })
@@ -61,7 +64,22 @@ export class Orders {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Wholseller',
   })
-  buyers: string;
+  buyersId: string;
+
+  @Prop({ required: true })
+  buyersName: string;
+
+  @Prop({ required: true, ref: 'Wholseller' })
+  buyersEmail: string;
+
+  @Prop({ required: true, ref: 'Wholseller' })
+  buyersPhone: string;
+
+  @Prop({ required: true, ref: 'Wholseller' })
+  buyersPlace: string;
+
+  @Prop({ required: true, ref: 'Wholseller' })
+  buyersAddress: string;
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
   createdBy: CreatedBy;

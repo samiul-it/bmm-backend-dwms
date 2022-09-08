@@ -8,23 +8,20 @@ import {
 import { NotificationService } from './notification.service';
 import { WsGuard } from '../WSGuard';
 
-@WebSocketGateway(5001, { cors: '*' })
+@WebSocketGateway({ cors: '*' })
 export class NotificationGateway {
   constructor(private notificationService: NotificationService) {}
 
   @WebSocketServer()
   server;
 
-  @UseGuards(WsGuard)
+  // @UseGuards(WsGuard)
   @SubscribeMessage('connection')
   async handleConnection(socket: any, data: any) {
-    // console.log('SocketId ===>', socket.id);
-    // console.log('DATA ==>', data);
     if (data?._id) {
       const _data = {
         socketId: socket?.id,
         userId: data?._id,
-        message: '',
       };
       await this.notificationService.createNotification(_data);
     }

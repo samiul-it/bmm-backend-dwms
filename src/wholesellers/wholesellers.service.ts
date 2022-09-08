@@ -248,16 +248,22 @@ export class WholesellersService {
   }
 
   async findUserByCategoryId(id: string) {
-    return await this.wholesellersModel.aggregate([
-      {
-        $match: {
-          catagories: {
-            $elemMatch: { categoryId: new mongoose.Schema.Types.ObjectId(id) },
+    return await this.wholesellersModel
+      .aggregate([
+        {
+          $match: {
+            catagories: {
+              $elemMatch: {
+                categoryId: id.toString(),
+              },
+            },
           },
         },
-      },
-      //@ts-ignore
-      { $group: { _id: '$id' } },
-    ]);
+        //@ts-ignore
+        { $group: { _id: '$_id' } },
+      ])
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
   }
 }

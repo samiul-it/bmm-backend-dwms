@@ -27,33 +27,30 @@ export class NotificationService {
   ) {}
 
   async createNotification(data: any) {
-    console.log('Called createNotification', data);
+    console.log('Called createNotification service', data);
 
-    const exists: any = await this.notificationModal.findOne({
-      userId: data.userId,
+    const exists = await this?.notificationModal?.findOne({
+      userId: data?.userId,
     });
 
+    // console.log('Found existing Notification', exists);
+
     if (exists) {
-      const oldMessage = exists?.messages ? exists?.messages : [];
       const _data = {
-        userId: data.userId,
-        socketId: data.socketId,
-        messages: [
-          ...oldMessage,
-          { message: data.message, cretedAt: new Date(), isSeen: false },
-        ],
+        socketId: data?.socketId,
       };
+      console.log('update socketId');
       return await this.notificationModal
-        .findOneAndUpdate({ userId: data.userId }, _data)
+        .findOneAndUpdate({ userId: data?.userId }, _data)
         .catch((err) => {
           throw new InternalServerErrorException(err);
         });
     } else {
       const _data = {
-        userId: data.userId,
-        socketId: data.socketId,
-        messages: [],
+        userId: data?.userId,
+        socketId: data?.socketId,
       };
+      console.log('create socketId');
 
       return await this.notificationModal.create(_data).catch((err) => {
         throw new InternalServerErrorException(err);
@@ -62,16 +59,16 @@ export class NotificationService {
   }
 
   async getNotificationsByUserId(id: string) {
-    return await this.notificationModal.find({ userId: id }).catch((err) => {
+    return await this.notificationModal.findOne({ userId: id }).catch((err) => {
       throw new InternalServerErrorException(err);
     });
   }
 
   async pushNotification(data: any) {
-    console.log('Called createNotification', data);
+    // console.log('new pushNotification');
 
-    const exists: any = await this.notificationModal.findOne({
-      userId: data.userId,
+    const exists = await this.notificationModal.findOne({
+      userId: data?.userId,
     });
 
     if (exists) {
@@ -79,19 +76,24 @@ export class NotificationService {
       const _data = {
         messages: [
           ...oldMessage,
-          { message: data.message, cretedAt: new Date(), isSeen: false },
+          {
+            message: data?.message,
+            cretedAt: new Date().toUTCString(),
+            isSeen: false,
+          },
         ],
       };
+
       return await this.notificationModal
-        .findOneAndUpdate({ userId: data.userId }, _data)
+        .findOneAndUpdate({ userId: data?.userId }, _data, { new: true })
         .catch((err) => {
           throw new InternalServerErrorException(err);
         });
     } else {
       const _data = {
-        userId: data.userId,
+        userId: data?.userId,
         messages: [
-          { message: data.message, cretedAt: new Date(), isSeen: false },
+          { message: data?.message, cretedAt: new Date(), isSeen: false },
         ],
       };
 
@@ -99,5 +101,13 @@ export class NotificationService {
         throw new InternalServerErrorException(err);
       });
     }
+  }
+
+  async updateIsSeen(user: any) {
+    return await this.notificationModal
+      .updateMany({ isSeen: false }, { isSeen: true })
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
   }
 }

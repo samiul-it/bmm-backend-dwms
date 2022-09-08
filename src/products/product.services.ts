@@ -14,6 +14,7 @@ import { ObjectId } from 'mongoose';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { Category, CategoryDocument } from 'src/ctegory/category.schema';
 import { WholesellersService } from 'src/wholesellers/wholesellers.service';
+import { NotificationService } from 'src/notification/notification.service';
 @Injectable()
 export class ProductService {
   constructor(
@@ -21,6 +22,7 @@ export class ProductService {
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
     private notificationServer: NotificationGateway,
     private wholesellersService: WholesellersService,
+    private notificationService: NotificationService,
   ) {}
 
   async createProduct(product: CreateProductDto) {
@@ -85,10 +87,10 @@ export class ProductService {
   }
 
   async getPagination(query: any) {
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 15;
-    const category_id: string = query.categoryId;
-    const searchQuery = query.search;
+    const page = parseInt(query?.page) || 1;
+    const limit = parseInt(query?.limit) || 15;
+    const category_id: string = query?.categoryId;
+    const searchQuery = query?.search;
     let products: object[];
     let totalDocuments: any;
     const andfilters = [{ category: new mongoose.Types.ObjectId(category_id) }];
@@ -108,6 +110,7 @@ export class ProductService {
         $or: [
           { product_name: { $regex: regx, $options: 'i' } },
           { product_desc: { $regex: regx, $options: 'i' } },
+          { metadata: { $eq: searchQuery } },
         ],
       });
     }
@@ -191,17 +194,37 @@ export class ProductService {
     return await this.productModel
       .findByIdAndUpdate(productId, product)
       .then(async () => {
-        this.notificationServer.server.emit('notification', {
-          message: `Product Updated: "${product.product_name}"`,
-          type: 'UPDATE',
-          data: { ...product, category: exists?.category },
-        });
+        if (
+          exists?.price_wholesale !== product?.price_wholesale ||
+          exists?.price_retail !== product?.price_retail ||
+          exists?.mrp !== product?.mrp
+        ) {
+          const usersWithSameCategory =
+            await this.wholesellersService.findUserByCategoryId(
+              exists?.category,
+            );
+          console.log('usersWithSameCategory', usersWithSameCategory);
 
-        const ff = await this.wholesellersService.findUserByCategoryId(
-          exists?.category,
-        );
-
-        console.log('users by categoryID ==>', ff);
+          await Promise.all(
+            usersWithSameCategory.map(async (user) => {
+              await this.notificationService
+                .pushNotification({
+                  userId: user._id.toString(),
+                  message: `${product.product_name}'s Price Updated`,
+                })
+                .then((res: any) => {
+                  console.log('after updating the pushed notification', res);
+                  this.notificationServer.server
+                    .to(res.socketId)
+                    .emit('notification', {
+                      message: `${product.product_name}'s Price Updated`,
+                      type: 'UPDATE',
+                      data: { ...product, category: exists?.category },
+                    });
+                });
+            }),
+          );
+        }
       })
       .catch((err) => {
         throw new InternalServerErrorException(err);
@@ -286,6 +309,39 @@ export class ProductService {
       );
       await Promise.all(
         updating.map(async (del) => {
+          const product = await this.productModel.findById(del?._id);
+          if (
+            del?.price_wholesale !== product?.price_wholesale ||
+            del?.price_retail !== product?.price_retail ||
+            del?.mrp !== product?.mrp
+          ) {
+            const usersWithSameCategory =
+              await this.wholesellersService.findUserByCategoryId(
+                del?.category,
+              );
+
+            await Promise.all(
+              usersWithSameCategory.map(async (user) => {
+                await this.notificationService
+                  .pushNotification({
+                    userId: user._id.toString(),
+                    message: `${product.product_name}'s Price Updated`,
+                  })
+                  .then((res: any) => {
+                    console.log('after updating the pushed notification', res);
+                    this.notificationServer.server
+                      .to(res.socketId)
+                      .emit('notification', {
+                        message: `${product.product_name}'s Price Updated`,
+                        type: 'UPDATE',
+                        data: { ...product, category: del?.category },
+                      });
+                  });
+              }),
+            );
+
+            del;
+          }
           return await this.productModel
             .findByIdAndUpdate({ _id: del._id }, del)
             .catch((err) => {
