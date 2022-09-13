@@ -39,7 +39,7 @@ export class productController {
   //! Admin-Route --->
   @Post('/create')
   async create(@Body() product: CreateProductDto, @AdminUser() user: any) {
-    return await this.productService.createProduct(product);
+    return await this.productService.createProduct(product, user);
   }
 
   // @Post('/createBulk')
@@ -67,12 +67,13 @@ export class productController {
     @Body() product: UpdateProductDto,
     @AdminUser() user: any,
   ) {
-    return await this.productService.updateProduct(id, product);
+    return await this.productService.updateProduct(id, product, user);
   }
 
+  //! Admin-Route --->
   @Delete('/:id')
   async deleteProduct(@Param('id') id: string, @AdminUser() user: any) {
-    return await this.productService.deleteProduct(id);
+    return await this.productService.deleteProduct(id, user);
   }
 
   // Update Products By Bulk XLS
@@ -82,6 +83,6 @@ export class productController {
     @Body() product: CreateProductDto[],
     @AdminUser() user: any,
   ) {
-    return await this.productService.updateProductBulk(product);
+    return await this.productService.updateProductBulk(product, user);
   }
 }

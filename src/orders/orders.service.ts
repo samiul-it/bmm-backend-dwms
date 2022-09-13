@@ -16,6 +16,7 @@ import { join } from 'path';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { UserService } from 'src/user/user.service';
+import { ActivityLogsService } from 'src/activity-logs/activity-logs.service';
 @Injectable()
 export class OrdersService {
   constructor(
@@ -26,6 +27,7 @@ export class OrdersService {
     private notificationService: NotificationService,
     private notificationServer: NotificationGateway,
     private userService: UserService,
+    private activityLogsService: ActivityLogsService,
   ) {}
 
   async generateOrderId() {
@@ -63,8 +65,10 @@ export class OrdersService {
     return year.toString().slice(-2) + id;
   }
 
-  async getAllOrders(user: any) {
-    return await this.ordersModel.find();
+  async getAllOrders() {
+    return await this.ordersModel.find().catch((err) => {
+      throw new InternalServerErrorException(err);
+    });
   }
 
   async getAllEmployeeOrders(user: any) {
@@ -116,6 +120,7 @@ export class OrdersService {
     _order.products.forEach((item) => {
       getSum(item);
     });
+    // console.log('order ==>', order);
 
     return await Promise.all(
       _order.buyersId.map(async (buyer: any, i) => {
@@ -165,12 +170,12 @@ export class OrdersService {
                 message: `New Order Placed For Wholeseller: ${_buyer?.name}`,
               })
               .then(async (res: any) => {
-                console.log('admin push notification ===>', {
-                  _id: res?._id,
-                  userId: res?.userId,
-                  messges: res?.messages.pop(),
-                  buyerName: _buyer?.name,
-                });
+                // console.log('admin push notification ===>', {
+                //   _id: res?._id,
+                //   userId: res?.userId,
+                //   messges: res?.messages.pop(),
+                //   buyerName: _buyer?.name,
+                // });
 
                 await this?.notificationServer?.server
                   ?.to(res?.socketId)
@@ -184,6 +189,23 @@ export class OrdersService {
             return;
           }),
         );
+
+        if (_order?.createdBy === buyer) {
+          //? if Created by user himself
+          await this.activityLogsService.createActivityLog(
+            _order?.createdBy,
+            `New Order Created by ${_buyer.name}`,
+          );
+        } else {
+          //? if Created by employee/admin
+          const creator = admins.filter(
+            (a: any) => a?._id.toString() === order?.createdBy,
+          );
+          await this.activityLogsService.createActivityLog(
+            _order.createdBy,
+            `${creator[0]?.name} Created order for ${_buyer.name}`,
+          );
+        }
 
         return newOrder;
         // return await newOrder.save();
@@ -333,6 +355,7 @@ export class OrdersService {
 
   async updateOrderStatus(id: any, query: any, user: any) {
     const updatedBy = await this.userService.getUserById(user?._id);
+    const admins: any = await this.userService.getAllBackendUsers(null);
     const status = {
       status: query,
       createdAt: new Date(),
@@ -355,7 +378,68 @@ export class OrdersService {
 
         exists?.status.push(status);
 
-        const result = await exists.save();
+        const result = await exists.save().then(async (res) => {
+          // console.log('status change res exist ==>', res);
+
+          await this.notificationService
+            .pushNotification({
+              userId: res?.buyersId,
+              message: `#${res?.orderId} Order status updated ${
+                res?.status[res.status.length - 1]?.status
+              }`,
+            })
+            .then(async (re: any) => {
+              await this.notificationServer?.server
+                ?.to(re?.socketId)
+                .emit('notification', {
+                  message: `#${res?.orderId} Order status updated ${
+                    res?.status[res?.status.length - 1]?.status
+                  }`,
+                  type: 'ORDER STATUS UPDATE',
+                });
+            });
+
+          await Promise.all(
+            admins?.map(async (ad: any) => {
+              // console.log('admin ===>', ad);
+
+              await this.notificationService
+                .pushNotification({
+                  userId: ad?._id?.toString(),
+                  message: `#${res?.orderId} order status updated by ${
+                    updatedBy?.name
+                  } To ${res?.status[res.status.length - 1]?.status}`,
+                })
+                .then(async (re: any) => {
+                  // console.log('admin push notification ===>', {
+                  //   _id: res?._id,
+                  //   userId: res?.userId,
+                  //   messges: res?.messages.pop(),
+                  //   buyerName: _buyer?.name,
+                  // });
+
+                  await this?.notificationServer?.server
+                    ?.to(re?.socketId)
+                    ?.emit('notification', {
+                      message: `#${res?.orderId} order status updated by ${
+                        updatedBy?.name
+                      } To ${res?.status[res.status.length - 1]?.status}`,
+                      type: 'ADDED',
+                      data: { category: '' },
+                    });
+                });
+
+              return;
+            }),
+          );
+
+          await this.activityLogsService.createActivityLog(
+            user?._id,
+            `#${res?.orderId} order status updated by ${updatedBy?.name} To ${
+              res?.status[res.status.length - 1]?.status
+            }`,
+          );
+        });
 
         // console.log("If++",result);
 
@@ -368,7 +452,68 @@ export class OrdersService {
 
         exists['status'] = [status];
 
-        const result = await exists.save();
+        const result = await exists.save().then(async (res) => {
+          // console.log('status change res !exist ==>', res);
+
+          await this.notificationService
+            .pushNotification({
+              userId: res?.buyersId,
+              message: `#${res?.orderId} Order status updated ${
+                res?.status[res.status.length - 1]?.status
+              }`,
+            })
+            .then(async (re: any) => {
+              await this.notificationServer?.server
+                ?.to(re?.socketId)
+                .emit('notification', {
+                  message: `#${res?.orderId} Order status updated ${
+                    res?.status[res?.status.length - 1]?.status
+                  }`,
+                  type: 'ORDER STATUS UPDATE',
+                });
+            });
+
+          await Promise.all(
+            admins?.map(async (ad: any) => {
+              // console.log('admin ===>', ad);
+
+              await this.notificationService
+                .pushNotification({
+                  userId: ad?._id?.toString(),
+                  message: `#${res?.orderId} order status updated by ${
+                    updatedBy?.name
+                  } To ${res?.status[res.status.length - 1]?.status}`,
+                })
+                .then(async (res: any) => {
+                  // console.log('admin push notification ===>', {
+                  //   _id: res?._id,
+                  //   userId: res?.userId,
+                  //   messges: res?.messages.pop(),
+                  //   buyerName: _buyer?.name,
+                  // });
+
+                  await this?.notificationServer?.server
+                    ?.to(res?.socketId)
+                    ?.emit('notification', {
+                      message: `#${res?.orderId} order status updated by ${
+                        updatedBy?.name
+                      } To ${res?.status[res.status.length - 1]?.status}`,
+                      type: 'ADDED',
+                      data: { category: '' },
+                    });
+                });
+
+              return;
+            }),
+          );
+
+          await this.activityLogsService.createActivityLog(
+            user?._id,
+            `#${res?.orderId} order status updated by ${updatedBy?.name} To ${
+              res?.status[res.status.length - 1]?.status
+            }`,
+          );
+        });
 
         // console.log("Else --",result);
 
@@ -385,9 +530,19 @@ export class OrdersService {
     });
   }
 
-  async updateOrder(id: string, order: any) {
-    return await this.ordersModel.findByIdAndUpdate(id, order).catch((err) => {
-      throw new InternalServerErrorException(err);
-    });
+  async updateOrder(id: string, order: any, user: any) {
+    // console.log('currunt user ==>', user);
+
+    return await this.ordersModel
+      .findByIdAndUpdate(id, order)
+      .then(async (res) => {
+        await this.activityLogsService.createActivityLog(
+          user?._id,
+          `#${res?.orderId} Order Details Updated by ${user?.name}`,
+        );
+      })
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
   }
 }

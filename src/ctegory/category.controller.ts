@@ -34,7 +34,7 @@ export class CategoryController {
   async getPagination(@Query() query: any, @CurrentUser() user: any) {
     // console.log('User ===> ', user);
     // console.log(query);
-    
+
     if (user.role === 'wholeseller') {
       return await this.categoryService.getPaginationWholeseller(
         query,
@@ -49,7 +49,7 @@ export class CategoryController {
   async lockedCategories(@Query() query: any, @CurrentUser() user: any) {
     // console.log('User ===> ', user);
     // console.log(query);
-    
+
     if (user.role === 'wholeseller') {
       return await this.categoryService.lockedCategoriesForWholeseller(
         query,
@@ -70,37 +70,45 @@ export class CategoryController {
     return await this.categoryService.getCategoryById(categoryId);
   }
 
+  //! Admin-Route --->
   @Post('/')
   async createCategory(
     @Body() category: CreateCategoryDto,
     @AdminUser() admin: any,
   ) {
-    return await this.categoryService.createCategory(category);
+    return await this.categoryService.createCategory(category, admin);
   }
   // @Post('/upload')
   // async createCategoryBulk(@Body() category: CreateCategoryDto[]) {
   //   return await this.categoryService.createCategoryBulk(category);
   // }
 
+  //! Admin-Route --->
   @Put('/:id')
   async updateCategory(
     @Param('id') categoryId: string,
     @Body() category: UpdateCategoryDto,
     @AdminUser() admin: any,
   ) {
-    return await this.categoryService.updateCategory(categoryId, category);
+    return await this.categoryService.updateCategory(
+      categoryId,
+      category,
+      admin,
+    );
   }
 
+  //! Admin-Route --->
   @Post('/deleteOne')
   async deleteCategory(@Body() body: any, @AdminUser() admin: any) {
     return await this.categoryService.deleteCategory(body, admin);
   }
 
+  //! Admin-Route --->
   @Post('/upload')
   async createCategoryBulk(
     @Body() category: CreateCategoryDto[],
     @AdminUser() admin: any,
   ) {
-    return await this.categoryService.updateCategoryXlsx(category);
+    return await this.categoryService.updateCategoryXlsx(category, admin);
   }
 }

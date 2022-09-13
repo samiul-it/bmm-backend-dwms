@@ -12,15 +12,17 @@ import { CreateCategoryDto } from './dto/create.category.dto';
 import { UpdateCategoryDto } from './dto/update.category.dto';
 import * as bcrypt from 'bcrypt';
 import { NotificationGateway } from 'src/notification/notification.gateway';
+import { ActivityLogsService } from 'src/activity-logs/activity-logs.service';
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private notificationServer: NotificationGateway,
+    private activityLogsService: ActivityLogsService,
   ) {}
 
-  async createCategory(category: CreateCategoryDto) {
+  async createCategory(category: CreateCategoryDto, user: any) {
     const exists = await this.categoryModel.findOne({ slug: category.slug });
     if (exists)
       throw new BadRequestException(
@@ -28,17 +30,19 @@ export class CategoryService {
       );
     return await new this.categoryModel(category)
       .save()
-      .then(() => {
-        this.notificationServer.server.emit('notification', {
-          message: 'new Category Added Socket Message 🚀',
+      .then(async (res) => {
+        await this.notificationServer.server.emit('notification', {
+          message: `New Category Added "${res?.name}"`,
           data: category,
         });
+
+        await this.activityLogsService.createActivityLog(
+          user?._id,
+          `New Category Added: ${res?.name} | Created By: ${user?.name}`,
+        );
       })
       .catch((err) => {
-        throw new InternalServerErrorException(
-          err,
-          'Category Creation Faileds',
-        );
+        throw new InternalServerErrorException(err, 'Category Creation Failed');
       });
   }
 
@@ -92,7 +96,11 @@ export class CategoryService {
     return category;
   }
 
-  async updateCategory(categoryId: string, category: UpdateCategoryDto) {
+  async updateCategory(
+    categoryId: string,
+    category: UpdateCategoryDto,
+    user: any,
+  ) {
     const exists = await this.categoryModel
       .findById(categoryId)
       .catch((err) => {
@@ -100,7 +108,13 @@ export class CategoryService {
       });
     if (!exists) throw new NotFoundException('Category not Found');
     return await this.categoryModel
-      .findByIdAndUpdate(categoryId, category)
+      .findByIdAndUpdate(categoryId, category, { new: true })
+      .then(async (res: any) => {
+        await this.activityLogsService.createActivityLog(
+          user?._id,
+          `Category Name Updated: ${exists?.name} to ${res?.name} | Updated By: ${user?.name}`,
+        );
+      })
       .catch((err) => {
         throw new InternalServerErrorException(err);
       });
@@ -117,11 +131,20 @@ export class CategoryService {
     const { id, password } = body;
 
     if (await bcrypt.compare(password, admin.password)) {
-      const category = await this.categoryModel
+      const category: any = await this.categoryModel
         .findByIdAndDelete(id)
+        .then(async (res) => {
+          await this.activityLogsService.createActivityLog(
+            admin?._id,
+            `Category Deleted: ${res?.name} | Deleted By: ${admin?.name}`,
+          );
+
+          return res;
+        })
         .catch((err) => {
           throw new InternalServerErrorException(err);
         });
+
       if (!category) throw new NotFoundException('Category not Found');
 
       const deleteAllExistingProducts = await this.productModel.deleteMany({
@@ -385,7 +408,7 @@ export class CategoryService {
   }
 
   //Adding Category through XLSX
-  async updateCategoryXlsx(CreateCategoryDto: any[]) {
+  async updateCategoryXlsx(CreateCategoryDto: any[], user: any) {
     try {
       let allProducts = await this.categoryModel.find();
       const adding = [];
@@ -400,54 +423,16 @@ export class CategoryService {
         }),
       );
 
-      // function arr_diff(a1: any[], a2: any[]) {
-      //   var a = [],
-      //     diff = [];
-
-      //   for (var i = 0; i < a1.length; i++) {
-      //     a[a1[i]] = true;
-      //   }
-
-      //   for (var i = 0; i < a2.length; i++) {
-      //     if (a[a2[i]]) {
-      //       delete a[a2[i]];
-      //     } else {
-      //       a[a2[i]] = true;
-      //     }
-      //   }
-
-      //   for (var k in a) {
-      //     diff.push(k);
-      //   }
-
-      //   return diff;
-      // }
-
-      // const arr1 = updating.map(
-      //   (item) => new mongoose.Types.ObjectId(item._id),
-      // );
-      // const arr2 = allProducts.map((item) => item._id);
-      // const deleting = arr_diff(arr1, arr2);
-
-      // console.log('adding ===>', adding);
-      // console.log('updating ===>', updating);
-      // console.log('deleting ===>', deleting);
-
-      // await Promise.all(
-      //   deleting.map(async (del) => {
-      //     return await this.categoryModel
-      //       .deleteOne({ _id: new mongoose.Types.ObjectId(del) })
-      //       .catch((err) => {
-      //         // this.Logger.error(`error at ${del}`);
-      //         throw new InternalServerErrorException(err);
-      //       });
-      //   }),
-      // );
-
       await Promise.all(
         updating.map(async (del) => {
           return await this.categoryModel
             .findByIdAndUpdate({ _id: del._id }, del)
+            .then(async (res) => {
+              await this.activityLogsService.createActivityLog(
+                user?._id,
+                `Category (bulk) Updated: ${res?.name} | Updated By: ${user?.name}`,
+              );
+            })
             .catch((err) => {
               // this.logger.error(`error at ${del}`);
               throw new InternalServerErrorException(err);
