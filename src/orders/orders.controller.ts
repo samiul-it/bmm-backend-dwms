@@ -20,12 +20,8 @@ export class OrdersController {
 
   @Get('/')
   async getAllOrders(@CurrentUser() user: any) {
-    console.log('order user Role ===>', user.role);
-
-    if (user.role === 'employee') {
-      return await this.ordersService.getAllEmployeeOrders(user);
-    } else if (user.role === 'admin') {
-      return await this.ordersService.getAllOrders(user);
+    if (user.role === 'admin' || user.role === 'employee') {
+      return await this.ordersService.getAllOrders();
     } else {
       return await this.ordersService.getAllOrderByUserId(user);
     }
@@ -50,8 +46,12 @@ export class OrdersController {
   }
 
   @Put('updateOrderDetails/:id')
-  async updateOrder(@Param('id') id: string, @Body() order: any) {
-    return await this.ordersService.updateOrder(id, order);
+  async updateOrder(
+    @Param('id') id: string,
+    @Body() order: any,
+    @CurrentUser() user: any,
+  ) {
+    return await this.ordersService.updateOrder(id, order, user);
   }
 
   // @Delete('/:id')

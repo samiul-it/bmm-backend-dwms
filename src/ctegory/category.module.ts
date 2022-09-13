@@ -10,6 +10,7 @@ import { UserModule } from 'src/user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { NotificationModule } from 'src/notification/notification.module';
+import { ActivityLogsModule } from 'src/activity-logs/activity-logs.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { NotificationModule } from 'src/notification/notification.module';
     UserModule,
     ConfigModule,
     JwtModule,
+    ActivityLogsModule,
     MongooseModule.forFeature([
       {
         name: Category.name,

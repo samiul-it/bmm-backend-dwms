@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { NotificationModule } from 'src/notification/notification.module';
 import { WholesellersModule } from 'src/wholesellers/wholesellers.module';
+import { ActivityLogsModule } from 'src/activity-logs/activity-logs.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WholesellersModule } from 'src/wholesellers/wholesellers.module';
     JwtModule,
     WholesellersModule,
     NotificationModule,
+    ActivityLogsModule,
     MongooseModule.forFeature([
       {
         name: Product.name,

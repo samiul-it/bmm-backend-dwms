@@ -9,12 +9,11 @@ import mongoose, { Model, Mongoose } from 'mongoose';
 import { Product, ProductDocument } from './product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { log } from 'console';
-import { ObjectId } from 'mongoose';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { Category, CategoryDocument } from 'src/ctegory/category.schema';
 import { WholesellersService } from 'src/wholesellers/wholesellers.service';
 import { NotificationService } from 'src/notification/notification.service';
+import { ActivityLogsService } from 'src/activity-logs/activity-logs.service';
 @Injectable()
 export class ProductService {
   constructor(
@@ -23,9 +22,10 @@ export class ProductService {
     private notificationServer: NotificationGateway,
     private wholesellersService: WholesellersService,
     private notificationService: NotificationService,
+    private activityLogsService: ActivityLogsService,
   ) {}
 
-  async createProduct(product: CreateProductDto) {
+  async createProduct(product: CreateProductDto, user: any) {
     const exists = await this.productModel.findOne({ slug: product.slug });
     if (exists)
       throw new BadRequestException(
@@ -37,12 +37,17 @@ export class ProductService {
 
     return await new this.productModel(product)
       .save()
-      .then(() => {
-        this.notificationServer.server.emit('notification', {
+      .then(async () => {
+        await this.notificationServer.server.emit('notification', {
           message: `New Product Added in Category: ${currentProductCategory.name} | Product Name: ${product.product_name}`,
           type: 'CREATE',
           data: product,
         });
+
+        await this.activityLogsService.createActivityLog(
+          user?._id,
+          `New Product Added in Category: ${currentProductCategory.name} | Product Name: ${product.product_name} | Created By: ${user?.name}`,
+        );
       })
       .catch((err) => {
         throw new InternalServerErrorException(err, 'Product Creation Faileds');
@@ -110,7 +115,7 @@ export class ProductService {
         $or: [
           { product_name: { $regex: regx, $options: 'i' } },
           { product_desc: { $regex: regx, $options: 'i' } },
-          { metadata: { $eq: searchQuery } },
+          { metadata: { $elemMatch: { $regex: regx, $options: 'i' } } },
         ],
       });
     }
@@ -184,7 +189,7 @@ export class ProductService {
     return product;
   }
 
-  async updateProduct(productId: string, product: UpdateProductDto) {
+  async updateProduct(productId: string, product: UpdateProductDto, user: any) {
     const exists: any = await this.productModel
       .findById(productId)
       .catch((err) => {
@@ -212,15 +217,19 @@ export class ProductService {
                   userId: user._id.toString(),
                   message: `${product.product_name}'s Price Updated`,
                 })
-                .then((res: any) => {
-                  console.log('after updating the pushed notification', res);
-                  this.notificationServer.server
+                .then(async (res: any) => {
+                  await this.notificationServer.server
                     .to(res.socketId)
                     .emit('notification', {
                       message: `${product.product_name}'s Price Updated`,
                       type: 'UPDATE',
                       data: { ...product, category: exists?.category },
                     });
+
+                  await this.activityLogsService.createActivityLog(
+                    user?._id,
+                    `${product.product_name}'s Price Updated | Updated By: ${user?.name}`,
+                  );
                 });
             }),
           );
@@ -231,10 +240,22 @@ export class ProductService {
       });
   }
 
-  async deleteProduct(id: string) {
-    return await this.productModel.findByIdAndDelete(id).catch((err) => {
-      throw new InternalServerErrorException(err);
-    });
+  async deleteProduct(id: string, user: any) {
+    return await this.productModel
+      .findByIdAndDelete(id)
+      .then(async (res: any) => {
+        const currentProductCategory: any = await this.categoryModel.findById(
+          res.category,
+        );
+
+        await this.activityLogsService.createActivityLog(
+          user?._id,
+          `Product Deleted From Category: ${currentProductCategory.name} | Product Name: ${res.product_name} | Deleted By: ${user?.name}`,
+        );
+      })
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
   }
 
   // async getAllProductCategories() {
@@ -245,7 +266,7 @@ export class ProductService {
 
   //Adding By XLS
 
-  async updateProductBulk(createProductDto: any[]) {
+  async updateProductBulk(createProductDto: any[], user: any) {
     try {
       let allProducts = await this.productModel.find({
         category: createProductDto[0]?.category,
@@ -327,15 +348,19 @@ export class ProductService {
                     userId: user._id.toString(),
                     message: `${product.product_name}'s Price Updated`,
                   })
-                  .then((res: any) => {
-                    console.log('after updating the pushed notification', res);
-                    this.notificationServer.server
+                  .then(async (res: any) => {
+                    await this.notificationServer.server
                       .to(res.socketId)
                       .emit('notification', {
                         message: `${product.product_name}'s Price Updated`,
                         type: 'UPDATE',
                         data: { ...product, category: del?.category },
                       });
+
+                    await this.activityLogsService.createActivityLog(
+                      user?._id,
+                      `${product.product_name}'s Price Updated | Updated By: ${user?.name}`,
+                    );
                   });
               }),
             );
