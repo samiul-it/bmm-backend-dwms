@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+  Body,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { NotificationService } from './notification.service';
@@ -17,4 +25,13 @@ export class NotificationController {
   async updateIsSeen(@CurrentUser() user: any) {
     return await this.notificationService.updateIsSeen(user);
   }
+
+  // @Post('/sendNotificationByCategoty')
+  // async sendNotificationByCategoty(@Body() body: any) {
+  //   const { categoryId, message } = body;
+  //   return await this.notificationService.sendNotificationByCategoty(
+  //     categoryId,
+  //     message,
+  //   );
+  // }
 }

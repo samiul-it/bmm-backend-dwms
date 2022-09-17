@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 import { NotificationGateway } from 'src/notification/notification.gateway';
+import { WholesellersModule } from 'src/wholesellers/wholesellers.module';
 import { NotificationController } from './notification.controller';
 import { Notification, NotificationSchema } from './notification.schema';
 import { NotificationService } from './notification.service';
@@ -18,8 +19,8 @@ import { NotificationService } from './notification.service';
       },
     ]),
   ],
-  providers: [NotificationGateway, NotificationService],
+  providers: [NotificationService, NotificationGateway],
   controllers: [NotificationController],
-  exports: [NotificationGateway, NotificationService],
+  exports: [NotificationService, NotificationGateway],
 })
 export class NotificationModule {}

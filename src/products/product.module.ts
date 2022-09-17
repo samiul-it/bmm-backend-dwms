@@ -20,7 +20,6 @@ import { ActivityLogsModule } from 'src/activity-logs/activity-logs.module';
     ConfigModule,
     JwtModule,
     WholesellersModule,
-    NotificationModule,
     ActivityLogsModule,
     MongooseModule.forFeature([
       {
