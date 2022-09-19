@@ -10,12 +10,18 @@ import { Wholesellers, WholesellersDocument } from './wholesellers.schema';
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationGateway } from 'src/notification/notification.gateway';
+import { ActivityLogsService } from 'src/activity-logs/activity-logs.service';
 
 @Injectable()
 export class WholesellersService {
   constructor(
     @InjectModel(Wholesellers.name)
     private wholesellersModel: Model<WholesellersDocument>,
+    private notificationService: NotificationService,
+    private notificationServer: NotificationGateway,
+    private activityLogsService: ActivityLogsService,
   ) {}
 
   // Creating a Wholeseller
@@ -33,7 +39,7 @@ export class WholesellersService {
   //   });
   // }
 
-  async createWholeseller(wholeseller: CreateWholesellerDto) {
+  async createWholeseller(wholeseller: CreateWholesellerDto, user: any) {
     const exists = await this.wholesellersModel.findOne({
       phone: wholeseller.phone,
     });
@@ -47,6 +53,12 @@ export class WholesellersService {
     const hash = await bcrypt.hash(wholeseller.password, 12);
     return await new this.wholesellersModel({ ...wholeseller, password: hash })
       .save()
+      .then(async (res) => {
+        await this.activityLogsService.createActivityLog(
+          user?._id,
+          `${user?.name} Created New Wholeseller || Name: ${res?.name}`,
+        );
+      })
       .catch((err) => {
         throw new InternalServerErrorException(
           err,
@@ -69,6 +81,7 @@ export class WholesellersService {
   async updateWholeseller(
     wholesellerId: string,
     wholeseller: UpdateWholesellerDto,
+    user: any,
   ) {
     const exists = await this.wholesellersModel
       .findById(wholesellerId)
@@ -78,6 +91,12 @@ export class WholesellersService {
     if (!exists) throw new NotFoundException('user Not Found');
     return await this.wholesellersModel
       .findByIdAndUpdate(wholesellerId, wholeseller)
+      .then(async (res) => {
+        await this.activityLogsService.createActivityLog(
+          user?._id,
+          `${user?.name} Updated Wholeseller || Name: ${res?.name}`,
+        );
+      })
       .catch((err) => {
         throw new InternalServerErrorException(err);
       });
@@ -117,10 +136,18 @@ export class WholesellersService {
   }
 
   //Deleting a wholeseller
-  async deleteWholeseller(id: string) {
-    return await this.wholesellersModel.findByIdAndDelete(id).catch((err) => {
-      throw new InternalServerErrorException(err);
-    });
+  async deleteWholeseller(id: string, user: any) {
+    return await this.wholesellersModel
+      .findByIdAndDelete(id)
+      .then(async (res) => {
+        await this.activityLogsService.createActivityLog(
+          user?._id,
+          `${user?.name} Deleted Wholeseller || Name: ${res?.name}`,
+        );
+      })
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
   }
 
   //Add wholesellers through XLS
@@ -183,7 +210,7 @@ export class WholesellersService {
   }
 
   //Adding through XLSX
-  async updateWholesellersXlsx(CreateWholesellerDto: any[]) {
+  async updateWholesellersXlsx(CreateWholesellerDto: any[], user: any) {
     try {
       let productVariants = await this.wholesellersModel.find();
       const adding = [];
@@ -205,6 +232,12 @@ export class WholesellersService {
         deleting.map(async (del) => {
           return await this.wholesellersModel
             .deleteOne({ _id: del._id })
+            .then(async (res: any) => {
+              await this.activityLogsService.createActivityLog(
+                user?._id,
+                `${user?.name} Deleted Wholeseller (Bulk) || Name: ${res?.name}`,
+              );
+            })
             .catch((err) => {
               // this.Logger.error(`error at ${del}`);
               throw new InternalServerErrorException(err);
@@ -215,6 +248,12 @@ export class WholesellersService {
         updating.map(async (del) => {
           return await this.wholesellersModel
             .updateOne({ _id: del._id }, del)
+            .then(async (res: any) => {
+              await this.activityLogsService.createActivityLog(
+                user?._id,
+                `${user?.name} Upated Wholeseller (Bulk) || Name: ${res?.name}`,
+              );
+            })
             .catch((err) => {
               // this.logger.error(`error at ${del}`);
               throw new InternalServerErrorException(err);
@@ -239,7 +278,7 @@ export class WholesellersService {
           }
         }),
       );
-      console.log('aa', adding.length, updating.length, deleting.length);
+      // console.log('aa', adding.length, updating.length, deleting.length);
       return;
     } catch (err) {
       console.log(err);
@@ -265,5 +304,39 @@ export class WholesellersService {
       .catch((err) => {
         throw new InternalServerErrorException(err);
       });
+  }
+
+  async sendNotificationByCategory(
+    categoryId: string,
+    message: string,
+    user: any,
+  ) {
+    const wholesellersList = await this.findUserByCategoryId(categoryId).catch(
+      (err) => {
+        throw new InternalServerErrorException(err);
+      },
+    );
+
+    Promise.all(
+      wholesellersList.map(async (wholeseller) => {
+        await this.notificationService
+          .pushNotification({
+            userId: wholeseller?._id,
+            message,
+          })
+          .then(async (res: any) => {
+            await this.notificationServer.server
+              .to(res?.socketId)
+              .emit('notification', {
+                message,
+                type: 'MESSAGE',
+              });
+          })
+          .catch((err) => {
+            throw new InternalServerErrorException(err);
+          });
+      }),
+    );
+    return 'Message sent successfully';
   }
 }

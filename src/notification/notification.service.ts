@@ -2,6 +2,8 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { IsMongoId } from 'class-validator';
 import mongoose, { Model, Mongoose } from 'mongoose';
+import { WholesellersService } from 'src/wholesellers/wholesellers.service';
+import { NotificationGateway } from './notification.gateway';
 import { Notification, NotificationDocument } from './notification.schema';
 
 export class MessageDTO {

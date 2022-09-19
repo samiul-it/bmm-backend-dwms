@@ -22,13 +22,20 @@ export class CategoryService {
     private activityLogsService: ActivityLogsService,
   ) {}
 
+  async generateSlug(slug: string) {
+    const f = String(slug).toLowerCase();
+    return f.replace(/ /g, '_');
+  }
+
   async createCategory(category: CreateCategoryDto, user: any) {
-    const exists = await this.categoryModel.findOne({ slug: category.slug });
+    const exists = await this.categoryModel.findOne({ name: category?.name });
+    const newSlug = await this.generateSlug(category?.name);
+
     if (exists)
       throw new BadRequestException(
-        `slug-${category.slug} already exists, slug must be unique`,
+        `Category-${category?.name} already exists, Category Name must be unique`,
       );
-    return await new this.categoryModel(category)
+    return await new this.categoryModel({ ...category, slug: newSlug })
       .save()
       .then(async (res) => {
         await this.notificationServer.server.emit('notification', {
@@ -413,13 +420,19 @@ export class CategoryService {
       let allProducts = await this.categoryModel.find();
       const adding = [];
       const updating = [];
-      await Promise.all(
+      const createCategory2: any = await Promise.all(
         CreateCategoryDto.map(async (variant) => {
           if (!variant._id) {
-            adding.push(variant);
+            variant['slug'] = await this.generateSlug(variant?.name);
+
+            adding.push({
+              ...variant,
+              slug: await this.generateSlug(variant?.name),
+            });
           } else {
             updating.push(variant);
           }
+          return variant;
         }),
       );
 
@@ -440,28 +453,31 @@ export class CategoryService {
         }),
       );
       await Promise.all(
-        CreateCategoryDto.map(async (del) => {
+        adding.map(async (del) => {
           const variantExists = await this.categoryModel.findOne({
-            slug: del.slug,
+            name: del?.name,
           });
           if (!variantExists) {
             // throw new BadRequestException(
             //   'Product Variant with this sku already exists',
             // );
-            const newVariant = await new this.categoryModel(del).save();
+            await new this.categoryModel(del).save().catch((err) => {
+              console.log('upate Bulk ->', err);
+
+              throw new InternalServerErrorException(err);
+            });
           } else {
-            const newVariant = await this.categoryModel.findByIdAndUpdate(
-              variantExists?._id,
-              del,
+            throw new InternalServerErrorException(
+              `Category-${variantExists?.name} already exists, Category Name must be unique`,
             );
           }
         }),
       );
       // console.log('aa', adding.length, updating.length, deleting.length);
 
-      return {
-        success: true,
-      };
+      // return {
+      //   success: true,
+      // };
     } catch (err) {
       console.log(err);
       return new InternalServerErrorException(err);
