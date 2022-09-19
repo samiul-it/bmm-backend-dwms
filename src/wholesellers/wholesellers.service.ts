@@ -70,9 +70,11 @@ export class WholesellersService {
   // Getting all Wholesellers
 
   async getAllWholesellers() {
-    const prod = await this.wholesellersModel.find().catch((err) => {
-      throw new InternalServerErrorException(err);
-    });
+    const prod = await this.wholesellersModel
+      .aggregate([{ $project: { password: 0 } }])
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
     return prod;
   }
 
@@ -306,22 +308,41 @@ export class WholesellersService {
       });
   }
 
+  async findUserByMultipleCategoryId(id: string) {
+    return await this.wholesellersModel
+      .aggregate([
+        {
+          $match: {
+            catagories: {
+              $elemMatch: {
+                categoryId: { $in: id },
+              },
+            },
+          },
+        },
+        { $project: { name: 1 } },
+      ])
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
+  }
+
   async sendNotificationByCategory(
-    categoryId: string,
+    wholesellersList: string[],
     message: string,
     user: any,
   ) {
-    const wholesellersList = await this.findUserByCategoryId(categoryId).catch(
-      (err) => {
-        throw new InternalServerErrorException(err);
-      },
-    );
+    // const wholesellersList = await this.findUserByCategoryId(categoryId).catch(
+    //   (err) => {
+    //     throw new InternalServerErrorException(err);
+    //   },
+    // );
 
     Promise.all(
-      wholesellersList.map(async (wholeseller) => {
+      wholesellersList?.map(async (wholeseller) => {
         await this.notificationService
           .pushNotification({
-            userId: wholeseller?._id,
+            userId: wholeseller,
             message,
           })
           .then(async (res: any) => {

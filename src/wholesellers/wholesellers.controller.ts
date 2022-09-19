@@ -9,6 +9,7 @@ import {
   Query,
   Put,
   UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { WholesellersService } from './wholesellers.service';
 import { CreateWholesellerDto } from './dto/create-wholeseller.dto';
@@ -42,8 +43,12 @@ export class WholesellersController {
 
   //Getting All Wholesellers
   @Get('/')
-  async allWholesellers(user: any) {
-    return await this.wholesellersService.getAllWholesellers();
+  async allWholesellers(@CurrentUser() user: any) {
+    if (user.role === 'admin' || user.role === 'employee') {
+      return await this.wholesellersService.getAllWholesellers();
+    } else {
+      throw new UnauthorizedException();
+    }
   }
 
   //Updating a wholeseller
@@ -126,11 +131,17 @@ export class WholesellersController {
   //! Admin-Route --->
   @Post('/sendNotificationByCategoty')
   async sendNotificationByCategoty(@Body() body: any, @AdminUser() user: any) {
-    const { categoryId, message } = body;
+    const { wholesellersList, message } = body;
     return await this.wholesellersService.sendNotificationByCategory(
-      categoryId,
+      wholesellersList,
       message,
       user,
     );
+  }
+
+  @Post('/findWholesellerByCategoryId')
+  async findWholesellerByCategoryId(@Body() body: any, @AdminUser() user: any) {
+    const { id } = body;
+    return this.wholesellersService.findUserByMultipleCategoryId(id);
   }
 }
