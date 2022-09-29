@@ -65,10 +65,40 @@ export class OrdersService {
     return year.toString().slice(-2) + id;
   }
 
-  async getAllOrders() {
-    return await this.ordersModel.find().catch((err) => {
-      throw new InternalServerErrorException(err);
-    });
+  async getAllOrders(page: number, limit: number, searchQuery: string) {
+    // return await this.ordersModel.find().catch((err) => {
+    //   throw new InternalServerErrorException(err);
+    // });
+
+    let find = {};
+
+    if (searchQuery) {
+      find = { orderId: searchQuery };
+    }
+
+    const Orders = await this.ordersModel
+      .find(find)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    let totalDocuments = await this.ordersModel.find(find).count();
+
+    console.log(searchQuery);
+
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    const result = {
+      curruntPage: page,
+      limit: limit,
+      totalPages,
+      totalDocuments,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
+      itemList: Orders,
+    };
+
+    return result;
   }
 
   async getAllEmployeeOrders(user: any) {
@@ -77,10 +107,66 @@ export class OrdersService {
     });
   }
 
-  async getAllOrderByUserId(user: any) {
-    return await this.ordersModel.find({
-      buyersId: new mongoose.Types.ObjectId(user._id),
-    });
+  async getAllOrderByUserId(query: any, user: any) {
+    // return await this.ordersModel.find({
+    //   buyersId: new mongoose.Types.ObjectId(user._id),
+    // });
+
+    const page = parseInt(query?.page) || 1;
+    const limit = parseInt(query?.limit) || 15;
+    const user_Id: string = user?._id;
+    const searchQuery = query?.search;
+    let orders: object[];
+    let totalDocuments: any;
+    const andfilters = [{ buyersId: new mongoose.Types.ObjectId(user_Id) }];
+
+    if (searchQuery) {
+      andfilters.push({
+        // @ts-ignore
+        $or: [{ orderId: searchQuery }],
+      });
+    }
+
+    orders = await this.ordersModel
+      .aggregate([
+        {
+          $match: {
+            $and: andfilters,
+          },
+        },
+      ])
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .catch((err) => {
+        throw new InternalServerErrorException(err);
+      });
+
+    if (!orders) throw new NotFoundException('Products not Found');
+
+    const itemCount = await this.ordersModel.aggregate([
+      {
+        $match: {
+          $and: andfilters,
+        },
+      },
+      { $count: 'totalDocuments' },
+    ]);
+
+    totalDocuments = itemCount[0]?.totalDocuments;
+
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    const result = {
+      curruntPage: page,
+      limit,
+      totalPages,
+      totalDocuments,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
+      itemList: orders,
+    };
+
+    return result;
   }
 
   async sendEmail(reciver: any, htmlData: any) {
@@ -167,7 +253,7 @@ export class OrdersService {
             await this.notificationService
               .pushNotification({
                 userId: ad?._id?.toString(),
-                message: `New Order Placed For Wholeseller: ${_buyer?.name}`,
+                message: `New Order Placed For Wholeseller: ${_buyer?.name} | Order Id: #${_orderId}`,
               })
               .then(async (res: any) => {
                 // console.log('admin push notification ===>', {
@@ -180,7 +266,7 @@ export class OrdersService {
                 await this?.notificationServer?.server
                   ?.to(res?.socketId)
                   ?.emit('notification', {
-                    message: `New Order Placed For Wholeseller: ${_buyer?.name}`,
+                    message: `New Order Placed For Wholeseller: ${_buyer?.name} | Order Id: #${_orderId}`,
                     type: 'ADDED',
                     data: { category: '' },
                   });
@@ -194,7 +280,7 @@ export class OrdersService {
           //? if Created by user himself
           await this.activityLogsService.createActivityLog(
             _order?.createdBy,
-            `New Order Created by ${_buyer.name}`,
+            `New Order Created by ${_buyer.name} | Order Id: #${_orderId}`,
           );
         } else {
           //? if Created by employee/admin
@@ -203,7 +289,7 @@ export class OrdersService {
           );
           await this.activityLogsService.createActivityLog(
             _order.createdBy,
-            `${creator[0]?.name} Created order for ${_buyer.name}`,
+            `${creator[0]?.name} Created order for ${_buyer.name} | Order Id: #${_orderId}`,
           );
         }
 
@@ -364,7 +450,6 @@ export class OrdersService {
     };
 
     const exists = await this.ordersModel.findById(id);
-    console.log(status);
 
     if (exists) {
       if (
@@ -545,4 +630,6 @@ export class OrdersService {
         throw new InternalServerErrorException(err);
       });
   }
+
+  async uplaodInvoice(file: any) {}
 }

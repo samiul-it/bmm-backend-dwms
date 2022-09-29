@@ -6,12 +6,19 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { createOrderDto } from './dto/create-order.dto';
 import { OrdersService } from './orders.service';
+import { Express } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { bunnyStorage } from 'src/BunnyStorageConfig';
+import * as fs from 'fs';
 
 @UseGuards(AuthGuard())
 @Controller('orders')
@@ -19,11 +26,15 @@ export class OrdersController {
   constructor(private ordersService: OrdersService) {}
 
   @Get('/')
-  async getAllOrders(@CurrentUser() user: any) {
+  async getAllOrders(@CurrentUser() user: any, @Query() query: any) {
     if (user.role === 'admin' || user.role === 'employee') {
-      return await this.ordersService.getAllOrders();
+      return await this.ordersService.getAllOrders(
+        Number(query.page) || 1,
+        Number(query.limit) || 15,
+        String(query.search) || '',
+      );
     } else {
-      return await this.ordersService.getAllOrderByUserId(user);
+      return await this.ordersService.getAllOrderByUserId(query, user);
     }
   }
 
@@ -67,5 +78,25 @@ export class OrdersController {
   ) {
     // console.log(status);
     return await this.ordersService.updateOrderStatus(id, status, user);
+  }
+
+  // async uploadInvoice(@UploadedFile() file: Express.Multer.File) {
+  //   console.log(file);
+  //   return true;
+  // }
+
+  @Post('/uploadInvoice')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
+    console.log(file);
+    bunnyStorage
+      .upload(file.buffer, 'test.jpg')
+      .then((response) => {
+        console.log('file uploaded successfully ===>', response);
+        return 'file uploaded successfully';
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 }
