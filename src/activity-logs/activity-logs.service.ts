@@ -25,4 +25,30 @@ export class ActivityLogsService {
       activity: activity,
     });
   }
+
+  async getPagination(page: number, limit: number, searchQuery: string) {
+    const logs = await this.activityLogsModel
+      .find({ activity: { $regex: searchQuery || '', $options: 'i' } })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    let totalDocuments = await this.activityLogsModel
+      .find({ activity: { $regex: searchQuery || '', $options: 'i' } })
+      .count();
+
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    const result = {
+      curruntPage: page,
+      limit: limit,
+      totalPages,
+      totalDocuments,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
+      itemList: logs,
+    };
+
+    return result;
+  }
 }

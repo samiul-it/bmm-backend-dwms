@@ -106,8 +106,13 @@ export class NotificationService {
   }
 
   async updateIsSeen(user: any) {
+    console.log('user', String(user?._id));
+
     return await this.notificationModal
-      .updateMany({ isSeen: false }, { isSeen: true })
+      .updateOne(
+        { userId: String(user?._id) },
+        { $set: { 'messages.$[].isSeen': true } },
+      )
       .catch((err) => {
         throw new InternalServerErrorException(err);
       });

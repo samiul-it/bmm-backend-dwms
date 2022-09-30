@@ -266,7 +266,7 @@ export class ProductService {
 
   //Adding By XLS
 
-  async updateProductBulk(createProductDto: any[], user: any) {
+  async updateProductBulk(createProductDto: any[], admin: any) {
     try {
       let allProducts = await this.productModel.find({
         category: createProductDto[0]?.category,
@@ -310,7 +310,7 @@ export class ProductService {
         (item) => new mongoose.Types.ObjectId(item._id),
       );
       const arr2 = allProducts.map((item) => item._id);
-      console.log('arr2 ==>', arr2);
+      // console.log('arr2 ==>', arr2);
 
       const deleting = arr_diff(arr1, arr2);
 
@@ -331,6 +331,14 @@ export class ProductService {
       await Promise.all(
         updating.map(async (del) => {
           const product = await this.productModel.findById(del?._id);
+          console.log(
+            'product is Same ====>',
+            del?.product_name,
+            Number(del?.price_wholesale) !== +product?.price_wholesale ||
+              +del?.price_retail !== +product?.price_retail ||
+              +del?.mrp !== +product?.mrp,
+          );
+
           if (
             del?.price_wholesale !== product?.price_wholesale ||
             del?.price_retail !== product?.price_retail ||
@@ -345,12 +353,12 @@ export class ProductService {
               usersWithSameCategory.map(async (user) => {
                 await this.notificationService
                   .pushNotification({
-                    userId: user._id.toString(),
+                    userId: user?._id.toString(),
                     message: `${product.product_name}'s Price Updated`,
                   })
                   .then(async (res: any) => {
                     await this.notificationServer.server
-                      .to(res.socketId)
+                      .to(res?.socketId)
                       .emit('notification', {
                         message: `${product.product_name}'s Price Updated`,
                         type: 'UPDATE',
@@ -359,7 +367,7 @@ export class ProductService {
 
                     await this.activityLogsService.createActivityLog(
                       user?._id,
-                      `${product.product_name}'s Price Updated | Updated By: ${user?.name}`,
+                      `${product.product_name}'s Price Updated | Updated By: ${admin?.name}`,
                     );
                   });
               }),
