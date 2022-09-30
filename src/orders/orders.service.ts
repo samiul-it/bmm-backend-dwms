@@ -234,6 +234,7 @@ export class OrdersService {
           .pushNotification({
             userId: buyer,
             message: `Your Order Has been Placed, Order ID: #${_orderId}`,
+            link: `/OrderDetails/${_orderId}`,
           })
           .then(async (res: any) => {
             await this.notificationServer?.server
@@ -254,6 +255,7 @@ export class OrdersService {
               .pushNotification({
                 userId: ad?._id?.toString(),
                 message: `New Order Placed For Wholeseller: ${_buyer?.name} | Order Id: #${_orderId}`,
+                link: `/OrderDetails/${_orderId}`,
               })
               .then(async (res: any) => {
                 // console.log('admin push notification ===>', {
@@ -472,6 +474,7 @@ export class OrdersService {
               message: `#${res?.orderId} Order status updated ${
                 res?.status[res.status.length - 1]?.status
               }`,
+              link: `/OrderDetails/${res?.orderId}`,
             })
             .then(async (re: any) => {
               await this.notificationServer?.server
@@ -494,6 +497,7 @@ export class OrdersService {
                   message: `#${res?.orderId} order status updated by ${
                     updatedBy?.name
                   } To ${res?.status[res.status.length - 1]?.status}`,
+                  link: `/OrderDetails/${res?.orderId}`,
                 })
                 .then(async (re: any) => {
                   // console.log('admin push notification ===>', {

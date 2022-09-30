@@ -12,6 +12,8 @@ class Message {
 
   @Prop({ default: false })
   isSeen: boolean;
+
+  link: string;
 }
 
 @Schema({ timestamps: true })

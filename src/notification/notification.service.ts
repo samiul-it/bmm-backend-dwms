@@ -82,6 +82,7 @@ export class NotificationService {
             message: data?.message,
             cretedAt: new Date().toUTCString(),
             isSeen: false,
+            link: data?.link ? data?.link : '',
           },
         ],
       };
