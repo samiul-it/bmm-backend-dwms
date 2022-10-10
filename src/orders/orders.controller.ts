@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -79,24 +80,29 @@ export class OrdersController {
     // console.log(status);
     return await this.ordersService.updateOrderStatus(id, status, user);
   }
-
+  // @Post('/uploadInvoice/:id')
   // async uploadInvoice(@UploadedFile() file: Express.Multer.File) {
   //   console.log(file);
   //   return true;
   // }
 
-  @Post('/uploadInvoice')
+  @Post('/uploadInvoice/:id')
   @UseInterceptors(FileInterceptor('file'))
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
-    console.log(file);
-    bunnyStorage
-      .upload(file.buffer, 'test.jpg')
-      .then((response) => {
-        console.log('file uploaded successfully ===>', response);
-        return 'file uploaded successfully';
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  uploadFile(@UploadedFile() file: Express.Multer.File, @Body() body: any) {
+    console.log(file, body);
   }
+
+  @Delete('/deleteImgae')
+  async deleteImage(@Query() query: any) {
+    return this.ordersService.deleteInvoiceImage(query?.public_id);
+  }
+
+  // @Put('/uploadInvoice/:id')
+  // async uploadInvoice(
+  //   @Param('id') id: string,
+  //   @Body() body: any
+  // ) {
+  //   // console.log(status);
+  //   return await this.ordersService.uploadInvoice(id, body);
+  // }
 }

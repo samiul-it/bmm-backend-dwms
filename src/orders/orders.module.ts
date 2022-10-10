@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 import { ActivityLogsModule } from 'src/activity-logs/activity-logs.module';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { UserModule } from 'src/user/user.module';
 import {
@@ -18,6 +19,7 @@ import { OrdersService } from './orders.service';
     NotificationModule,
     UserModule,
     ActivityLogsModule,
+    CloudinaryModule,
     MongooseModule.forFeature([
       {
         name: Wholesellers.name,

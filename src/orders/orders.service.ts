@@ -17,6 +17,8 @@ import { NotificationService } from 'src/notification/notification.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { UserService } from 'src/user/user.service';
 import { ActivityLogsService } from 'src/activity-logs/activity-logs.service';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -28,6 +30,7 @@ export class OrdersService {
     private notificationServer: NotificationGateway,
     private userService: UserService,
     private activityLogsService: ActivityLogsService,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   async generateOrderId() {
@@ -620,8 +623,6 @@ export class OrdersService {
   }
 
   async updateOrder(id: string, order: any, user: any) {
-    // console.log('currunt user ==>', user);
-
     return await this.ordersModel
       .findByIdAndUpdate(id, order)
       .then(async (res) => {
@@ -635,5 +636,24 @@ export class OrdersService {
       });
   }
 
-  async uplaodInvoice(file: any) {}
+  // async uploadInvoice(id: string, body: any) {
+  //   cloudinary.uploader.upload(
+  //     '/home/my_image.jpg',
+  //     { upload_preset: 'my_preset' },
+  //     (error, result) => {
+  //       console.log(result, error);
+  //     },
+  //   );
+
+  //   // return await this.ordersModel.findOneAndUpdate(
+  //   //   { orderId: id },
+  //   //   {
+  //   //     invoiceURL: body?.invoiceURL,
+  //   //   },
+  //   // );
+  // }
+
+  async deleteInvoiceImage(public_id: string) {
+    return this.cloudinaryService.deleteImage(public_id);
+  }
 }
