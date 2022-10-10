@@ -20,6 +20,8 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { NotificationModule } from './notification/notification.module';
 import { CategoryrequestModule } from './categoryrequest/categoryrequest.module';
 import { ActivityLogsModule } from './activity-logs/activity-logs.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { CloudinaryProvider } from './cloudinary/cloudinary.provider';
 
 @Module({
   imports: [
@@ -79,6 +81,7 @@ import { ActivityLogsModule } from './activity-logs/activity-logs.module';
     NotificationModule,
     CategoryrequestModule,
     ActivityLogsModule,
+    CloudinaryModule,
 
     // SmsModule,
     // EmailModule,
@@ -89,6 +92,6 @@ import { ActivityLogsModule } from './activity-logs/activity-logs.module';
     // WebhooksModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CloudinaryProvider],
 })
 export class AppModule {}

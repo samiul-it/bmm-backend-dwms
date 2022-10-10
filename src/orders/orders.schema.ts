@@ -40,6 +40,13 @@ export class Products {
   quantity: number;
 }
 
+export class Images {
+  @Prop({ required: true })
+  public_id: string;
+  @Prop({ required: true })
+  image_url: string;
+}
+
 export class Status {
   @Prop({ default: 'placed', required: true })
   status: string;
@@ -92,6 +99,9 @@ export class Orders {
 
   @Prop({ required: true })
   status: Status[];
+
+  @Prop({ required: false, default: [] })
+  images: Images[];
 }
 
 export const OrdersSchema = SchemaFactory.createForClass(Orders);
