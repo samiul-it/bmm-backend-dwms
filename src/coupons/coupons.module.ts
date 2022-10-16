@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { PassportModule } from '@nestjs/passport';
 import { Coupon, CouponSchema } from './coupon.schema';
 import { CouponsController } from './coupons.controller';
 import { CouponsService } from './coupons.service';
-import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [

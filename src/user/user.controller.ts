@@ -9,15 +9,15 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto, UpdateUserRoleDto } from './dto/update-role.dto';
-import { UserService } from './user.service';
 import { IsPhoneNumber } from 'class-validator';
 import { identity } from 'rxjs';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminUser } from 'src/auth/admin-user.decorator';
-import { UpdateUserPassDto } from './dto/update-user-pass.dto';
 import { CurrentUser } from 'src/auth/current-user.decorator';
+import { UpdateUserPassDto } from './dto/update-user-pass.dto';
+import { UserService } from './user.service';
+import { UpdateUserDto, UpdateUserRoleDto } from './dto/update-role.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 class CustomerPhoneDto {
   @IsPhoneNumber('IN')

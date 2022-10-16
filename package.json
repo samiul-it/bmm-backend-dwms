@@ -33,7 +33,6 @@
     "@nestjs/platform-socket.io": "^9.0.11",
     "@nestjs/websockets": "^9.0.11",
     "bcrypt": "^5.0.1",
-    "bunnycdn-storage": "^1.0.4",
     "class": "^0.1.4",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
@@ -63,15 +62,20 @@
     "@types/multer": "^1.4.7",
     "@types/node": "^16.0.0",
     "@types/supertest": "^2.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "eslint": "^8.0.1",
+    "eslint-config-standard-with-typescript": "^23.0.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-promise": "^6.0.0",
     "jest": "28.0.3",
-    "prettier": "^2.3.2",
     "source-map-support": "^0.5.20",
     "supertest": "^6.1.3",
     "ts-jest": "28.0.1",
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "4.0.0",
-    "typescript": "^4.3.5"
+    "typescript": "*"
   },
   "jest": {
     "moduleFileExtensions": [

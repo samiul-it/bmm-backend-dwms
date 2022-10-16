@@ -14,12 +14,10 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/auth/current-user.decorator';
-import { createOrderDto } from './dto/create-order.dto';
-import { OrdersService } from './orders.service';
 import { Express } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { bunnyStorage } from 'src/BunnyStorageConfig';
-import * as fs from 'fs';
+import { OrdersService } from './orders.service';
+import { createOrderDto } from './dto/create-order.dto';
 
 @UseGuards(AuthGuard())
 @Controller('orders')
@@ -32,7 +30,7 @@ export class OrdersController {
       return await this.ordersService.getAllOrders(
         Number(query.page) || 1,
         Number(query.limit) || 15,
-        String(query.search) || '',
+        String(query.search) || ''
       );
     } else {
       return await this.ordersService.getAllOrderByUserId(query, user);
@@ -61,7 +59,7 @@ export class OrdersController {
   async updateOrder(
     @Param('id') id: string,
     @Body() order: any,
-    @CurrentUser() user: any,
+    @CurrentUser() user: any
   ) {
     return await this.ordersService.updateOrder(id, order, user);
   }
@@ -75,7 +73,7 @@ export class OrdersController {
   async updateOrderStatus(
     @Param('id') id: string,
     @Query('status') status: any,
-    @CurrentUser() user: any,
+    @CurrentUser() user: any
   ) {
     // console.log(status);
     return await this.ordersService.updateOrderStatus(id, status, user);

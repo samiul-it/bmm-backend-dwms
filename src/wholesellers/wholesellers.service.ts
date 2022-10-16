@@ -4,15 +4,15 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateWholesellerDto } from './dto/create-wholeseller.dto';
-import { UpdateWholesellerDto } from './dto/update-wholeseller.dto';
-import { Wholesellers, WholesellersDocument } from './wholesellers.schema';
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { ActivityLogsService } from 'src/activity-logs/activity-logs.service';
+import { Wholesellers, WholesellersDocument } from './wholesellers.schema';
+import { UpdateWholesellerDto } from './dto/update-wholeseller.dto';
+import { CreateWholesellerDto } from './dto/create-wholeseller.dto';
 
 @Injectable()
 export class WholesellersService {
@@ -214,7 +214,7 @@ export class WholesellersService {
   //Adding through XLSX
   async updateWholesellersXlsx(CreateWholesellerDto: any[], user: any) {
     try {
-      let productVariants = await this.wholesellersModel.find();
+      const productVariants = await this.wholesellersModel.find();
       const adding = [];
       const updating = [];
       await Promise.all(

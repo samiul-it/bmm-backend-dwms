@@ -2,14 +2,14 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtPayload } from './jwt-payload.interface';
+import { Request } from 'express';
 import { UserService } from '../user/user.service';
+import { JwtPayload } from './jwt-payload.interface';
 // import { CustomerService } from 'src/customer/customer.service';
 import { WholesellersService } from './../wholesellers/wholesellers.service';
-import { Request } from 'express';
 
 const tokenExtractor = (req) => {
-  let token = req.headers['authorization'];
+  const token = req.headers['authorization'];
 
   // console.log("Header",req.headers['authorization']);
 

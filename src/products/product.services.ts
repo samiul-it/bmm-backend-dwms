@@ -6,14 +6,14 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Mongoose } from 'mongoose';
-import { Product, ProductDocument } from './product.schema';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { Category, CategoryDocument } from 'src/ctegory/category.schema';
 import { WholesellersService } from 'src/wholesellers/wholesellers.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { ActivityLogsService } from 'src/activity-logs/activity-logs.service';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { CreateProductDto } from './dto/create-product.dto';
+import { Product, ProductDocument } from './product.schema';
 @Injectable()
 export class ProductService {
   constructor(
@@ -268,7 +268,7 @@ export class ProductService {
 
   async updateProductBulk(createProductDto: any[], admin: any) {
     try {
-      let allProducts = await this.productModel.find({
+      const allProducts = await this.productModel.find({
         category: createProductDto[0]?.category,
       });
       const adding = [];
@@ -284,7 +284,7 @@ export class ProductService {
       );
 
       function arr_diff(a1: any[], a2: any[]) {
-        var a = [],
+        const a = [],
           diff = [];
 
         for (var i = 0; i < a1.length; i++) {
@@ -299,7 +299,7 @@ export class ProductService {
           }
         }
 
-        for (var k in a) {
+        for (const k in a) {
           diff.push(k);
         }
 

@@ -1,23 +1,23 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Orders, OrdersDocument } from './orders.schema';
-import mongoose, { Model } from 'mongoose';
-import { createOrderDto } from './dto/create-order.dto';
+import { join } from 'path';
 import {
   Wholesellers,
   WholesellersDocument,
 } from 'src/wholesellers/wholesellers.schema';
 import { MailerService } from '@nestjs-modules/mailer';
-import { join } from 'path';
+import mongoose, { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { UserService } from 'src/user/user.service';
 import { ActivityLogsService } from 'src/activity-logs/activity-logs.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { createOrderDto } from './dto/create-order.dto';
+import { Orders, OrdersDocument } from './orders.schema';
 
 @Injectable()
 export class OrdersService {
@@ -85,7 +85,7 @@ export class OrdersService {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    let totalDocuments = await this.ordersModel.find(find).count();
+    const totalDocuments = await this.ordersModel.find(find).count();
 
     console.log(searchQuery);
 
@@ -197,7 +197,7 @@ export class OrdersService {
       user: user?._id,
     };
 
-    let _order = order;
+    const _order = order;
     let MainTotal = 0;
 
     const getSum = (item: any) => {
