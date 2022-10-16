@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { CategoryrequestService } from './categoryrequest.service';
-import { CategoryrequestController } from './categoryrequest.controller';
 import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CategoryrequestService } from './categoryrequest.service';
+import { CategoryrequestController } from './categoryrequest.controller';
 import { CategoryReq, CategoryReqSchema } from './categoryrequest.schema';
 
 

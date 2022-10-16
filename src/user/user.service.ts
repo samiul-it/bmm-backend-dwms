@@ -10,11 +10,11 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { CurrentUser } from 'src/auth/current-user.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User, UserDocument } from './user.schema';
 import { UpdateUserRoleDto, UpdateUserDto } from './dto/update-role.dto';
 import { UpdateUserPassDto } from './dto/update-user-pass.dto';
-import { CurrentUser } from 'src/auth/current-user.decorator';
 
 @Injectable()
 export class UserService {

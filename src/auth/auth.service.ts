@@ -6,11 +6,11 @@ import {
 // import { SendOtpDto } from './dto/send-otp.dto';
 // import { SmsService } from '../sms/sms.service';
 // import { VerifyOtpDto } from './dto/verify-otp.dto';
-import { UserService } from '../user/user.service';
-import { SignInDto } from './dto/sign-in.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { User } from 'src/user/user.schema';
+import { UserService } from '../user/user.service';
+import { SignInDto } from './dto/sign-in.dto';
 // import { CustomerService } from '../customer/customer.service';
 import { WholesellersService } from './../wholesellers/wholesellers.service';
 

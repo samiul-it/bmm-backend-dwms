@@ -11,12 +11,12 @@ import {
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
-import { WholesellersService } from './wholesellers.service';
-import { CreateWholesellerDto } from './dto/create-wholeseller.dto';
-import { UpdateWholesellerDto } from './dto/update-wholeseller.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminUser } from 'src/auth/admin-user.decorator';
 import { CurrentUser } from 'src/auth/current-user.decorator';
+import { WholesellersService } from './wholesellers.service';
+import { CreateWholesellerDto } from './dto/create-wholeseller.dto';
+import { UpdateWholesellerDto } from './dto/update-wholeseller.dto';
 
 @UseGuards(AuthGuard())
 @Controller('wholesellers')

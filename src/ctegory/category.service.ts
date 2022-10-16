@@ -7,19 +7,19 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Product, ProductDocument } from 'src/products/product.schema';
-import { Category, CategoryDocument } from './category.schema';
-import { CreateCategoryDto } from './dto/create.category.dto';
-import { UpdateCategoryDto } from './dto/update.category.dto';
 import * as bcrypt from 'bcrypt';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { ActivityLogsService } from 'src/activity-logs/activity-logs.service';
+import { Category, CategoryDocument } from './category.schema';
+import { CreateCategoryDto } from './dto/create.category.dto';
+import { UpdateCategoryDto } from './dto/update.category.dto';
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private notificationServer: NotificationGateway,
-    private activityLogsService: ActivityLogsService,
+    private activityLogsService: ActivityLogsService
   ) {}
 
   async generateSlug(slug: string) {
@@ -33,7 +33,7 @@ export class CategoryService {
 
     if (exists)
       throw new BadRequestException(
-        `Category-${category?.name} already exists, Category Name must be unique`,
+        `Category-${category?.name} already exists, Category Name must be unique`
       );
     return await new this.categoryModel({ ...category, slug: newSlug })
       .save()
@@ -45,7 +45,7 @@ export class CategoryService {
 
         await this.activityLogsService.createActivityLog(
           user?._id,
-          `New Category Added: ${res?.name} | Created By: ${user?.name}`,
+          `New Category Added: ${res?.name} | Created By: ${user?.name}`
         );
       })
       .catch((err) => {
@@ -57,7 +57,7 @@ export class CategoryService {
     return await this.categoryModel.insertMany(category).catch((err) => {
       throw new InternalServerErrorException(
         err,
-        'Bulk Category Creation Failed',
+        'Bulk Category Creation Failed'
       );
     });
   }
@@ -106,7 +106,7 @@ export class CategoryService {
   async updateCategory(
     categoryId: string,
     category: UpdateCategoryDto,
-    user: any,
+    user: any
   ) {
     const exists = await this.categoryModel
       .findById(categoryId)
@@ -119,7 +119,7 @@ export class CategoryService {
       .then(async (res: any) => {
         await this.activityLogsService.createActivityLog(
           user?._id,
-          `Category Name Updated: ${exists?.name} to ${res?.name} | Updated By: ${user?.name}`,
+          `Category Name Updated: ${exists?.name} to ${res?.name} | Updated By: ${user?.name}`
         );
       })
       .catch((err) => {
@@ -143,7 +143,7 @@ export class CategoryService {
         .then(async (res) => {
           await this.activityLogsService.createActivityLog(
             admin?._id,
-            `Category Deleted: ${res?.name} | Deleted By: ${admin?.name}`,
+            `Category Deleted: ${res?.name} | Deleted By: ${admin?.name}`
           );
 
           return res;
@@ -250,10 +250,10 @@ export class CategoryService {
     let categories: object[];
     let totalDocuments: any;
 
-    let userCategoriesIds: any = await Promise.all(
+    const userCategoriesIds: any = await Promise.all(
       userCategories.map((category) => {
         return new mongoose.Types.ObjectId(category.categoryId);
-      }),
+      })
     );
 
     const regx = new RegExp(searchQuery);
@@ -336,10 +336,10 @@ export class CategoryService {
     let categories: object[];
     let totalDocuments: any;
 
-    let userCategoriesIds: any = await Promise.all(
+    const userCategoriesIds: any = await Promise.all(
       userCategories.map((category) => {
         return new mongoose.Types.ObjectId(category.categoryId);
-      }),
+      })
     );
 
     const regx = new RegExp(searchQuery);
@@ -417,7 +417,7 @@ export class CategoryService {
   //Adding Category through XLSX
   async updateCategoryXlsx(CreateCategoryDto: any[], user: any) {
     try {
-      let allProducts = await this.categoryModel.find();
+      const allProducts = await this.categoryModel.find();
       const adding = [];
       const updating = [];
       const createCategory2: any = await Promise.all(
@@ -433,7 +433,7 @@ export class CategoryService {
             updating.push(variant);
           }
           return variant;
-        }),
+        })
       );
 
       await Promise.all(
@@ -443,14 +443,14 @@ export class CategoryService {
             .then(async (res) => {
               await this.activityLogsService.createActivityLog(
                 user?._id,
-                `Category (bulk) Updated: ${res?.name} | Updated By: ${user?.name}`,
+                `Category (bulk) Updated: ${res?.name} | Updated By: ${user?.name}`
               );
             })
             .catch((err) => {
               // this.logger.error(`error at ${del}`);
               throw new InternalServerErrorException(err);
             });
-        }),
+        })
       );
       await Promise.all(
         adding.map(async (del) => {
@@ -468,10 +468,10 @@ export class CategoryService {
             });
           } else {
             throw new InternalServerErrorException(
-              `Category-${variantExists?.name} already exists, Category Name must be unique`,
+              `Category-${variantExists?.name} already exists, Category Name must be unique`
             );
           }
-        }),
+        })
       );
       // console.log('aa', adding.length, updating.length, deleting.length);
 

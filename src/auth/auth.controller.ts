@@ -1,12 +1,12 @@
 import { Body, Controller, Post, Res, UseGuards, Get } from '@nestjs/common';
+import { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import { User } from '../user/user.schema';
 import { AuthService } from './auth.service';
 // import { SendOtpDto } from './dto/send-otp.dto';
 import { SignInDto } from './dto/sign-in.dto';
 // import { VerifyOtpDto } from './dto/verify-otp.dto';
-import { Response } from 'express';
 import { CurrentUser } from './current-user.decorator';
-import { AuthGuard } from '@nestjs/passport';
-import { User } from '../user/user.schema';
 
 @Controller('auth')
 export class AuthController {

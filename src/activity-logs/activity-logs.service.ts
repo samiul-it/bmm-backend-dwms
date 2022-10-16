@@ -33,7 +33,7 @@ export class ActivityLogsService {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    let totalDocuments = await this.activityLogsModel
+    const totalDocuments = await this.activityLogsModel
       .find({ activity: { $regex: searchQuery || '', $options: 'i' } })
       .count();
 
