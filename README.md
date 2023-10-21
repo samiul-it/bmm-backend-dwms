@@ -1,6 +1,6 @@
 # BMM_Backend
 
-**🛍️Authentication**
+***🛍️Authentication**
 **🛍️Orders and Bulk Orders: Seamlessly managing customer orders, even in bulk via XLSX uploads.**
 **📦 Bulk Product Addition: Efficiently adding products in large quantities.**
 **💼 Wholesalers: Catering to the needs of our valuable wholesale customers.**
